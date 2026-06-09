@@ -1,0 +1,138 @@
+{
+  "systems": {
+    "2": {
+      "name": "HSK 2.0",
+      "subtitle": "النظام القديم",
+      "accent": "coral",
+      "levels": [
+        {
+          "id": "hsk1-2",
+          "label": "HSK 1-2",
+          "cn": "初级",
+          "emoji": "🌱",
+          "color": "#11A88E",
+          "soft": "#E6F7F3",
+          "count": 300,
+          "desc": "المفردات الأساسية — المبتدئون"
+        },
+        {
+          "id": "hsk3",
+          "label": "HSK 3",
+          "cn": "中级",
+          "emoji": "📖",
+          "color": "#7C5CFC",
+          "soft": "#F2EEFF",
+          "count": 300,
+          "desc": "المفردات المتوسطة"
+        },
+        {
+          "id": "hsk4",
+          "label": "HSK 4",
+          "cn": "中高级",
+          "emoji": "⭐",
+          "color": "#E8A03A",
+          "soft": "#FDF6E7",
+          "count": 1199,
+          "desc": "المفردات فوق المتوسطة"
+        },
+        {
+          "id": "hsk5",
+          "label": "HSK 5",
+          "cn": "高级",
+          "emoji": "🏆",
+          "color": "#FF4D4F",
+          "soft": "#FFF1F0",
+          "count": 2474,
+          "desc": "المفردات المتقدمة — المحترفون"
+        },
+        {
+          "id": "hsk6",
+          "label": "HSK 6",
+          "cn": "精通级",
+          "emoji": "🎓",
+          "color": "#0E7490",
+          "soft": "#E8F5FA",
+          "count": 2487,
+          "desc": "المفردات الاحترافية — المتقن"
+        }
+      ]
+    },
+    "3": {
+      "name": "HSK 3.0",
+      "subtitle": "النظام الجديد",
+      "accent": "mint",
+      "levels": [
+        {
+          "id": "n1",
+          "label": "HSK 1",
+          "cn": "初级",
+          "emoji": "🌱",
+          "color": "#11A88E",
+          "soft": "#E6F7F3",
+          "count": 300,
+          "desc": "المفردات الأساسية"
+        },
+        {
+          "id": "n2",
+          "label": "HSK 2",
+          "cn": "初中级",
+          "emoji": "📗",
+          "color": "#1E40AF",
+          "soft": "#EAF2FE",
+          "count": 772,
+          "desc": "المفردات المتوسطة الدنيا"
+        },
+        {
+          "id": "n3",
+          "label": "HSK 3",
+          "cn": "中级",
+          "emoji": "📘",
+          "color": "#7C5CFC",
+          "soft": "#F2EEFF",
+          "count": 969,
+          "desc": "المفردات المتوسطة"
+        },
+        {
+          "id": "n4",
+          "label": "HSK 4",
+          "cn": "中高级",
+          "emoji": "⭐",
+          "color": "#E8A03A",
+          "soft": "#FDF6E7",
+          "count": 999,
+          "desc": "المفردات فوق المتوسطة"
+        },
+        {
+          "id": "n5",
+          "label": "HSK 5",
+          "cn": "高级",
+          "emoji": "🏆",
+          "color": "#FF4D4F",
+          "soft": "#FFF1F0",
+          "count": 1598,
+          "desc": "المفردات المتقدمة"
+        },
+        {
+          "id": "n6",
+          "label": "HSK 6",
+          "cn": "专业级",
+          "emoji": "🎓",
+          "color": "#0E7490",
+          "soft": "#E8F5FA",
+          "count": 1798,
+          "desc": "المستوى الاحترافي"
+        },
+        {
+          "id": "n789",
+          "label": "HSK 7-9",
+          "cn": "精通级",
+          "emoji": "🔥",
+          "color": "#A63A2F",
+          "soft": "#FCEDEB",
+          "count": 5600,
+          "desc": "المستوى المتقن — الخبراء"
+        }
+      ]
+    }
+  }
+}

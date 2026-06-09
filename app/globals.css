@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap");
+
+:root {
+  --background: #FAFAF8;
+  --foreground: #1a1a1a;
+}
+
+html, body {
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: "IBM Plex Sans Arabic", "Noto Sans SC", sans-serif;
+  padding-bottom: 72px;
+}
+
+* { -webkit-tap-highlight-color: transparent; }
+
+/* ===== Animations (Toast) ===== */
+@keyframes fadeInSlide {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeInSlide 0.25s ease-out both; }
+
+/* ===== Flip card ===== */
+.flip-scene { perspective: 1200px; }
+.flip-card {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
+  width: 100%;
+}
+.flip-card.flipped { transform: rotateY(180deg); }
+.flip-face {
+  position: absolute;
+  inset: 0;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.flip-back { transform: rotateY(180deg); }
+
+/* ===== Flash بعد التقييم ===== */
+@keyframes flashFade {
+  0%   { opacity: 0; transform: scale(0.85); }
+  35%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.05); }
+}
+
+/* ===== Onboarding slide transition ===== */
+@keyframes onboardFade {
+  0%   { opacity: 0; transform: translateX(-12px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+
+/* ===== Donut chart segment fade-in (staggered) ===== */
+@keyframes donutDraw {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===== Auto transitions for hover (Polish v26) ===== */
+button[class*="hover:"],
+a[class*="hover:"] {
+  transition-property: color, background-color, border-color, opacity, box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+/* ============================================================
+ * Z-INDEX SCALE (موثّق)
+ * ============================================================
+ * z-10:    overlays صغيرة داخل صفحة (مثل Flash effect overlay)
+ * z-50:    BottomNav (ثابت أسفل الشاشة)
+ * z-[80]:  Practice modals (Flashcards, Listening, Typing)
+ * z-[90]:  Toast notifications (فوق الـmodals)
+ * z-[95]:  Onboarding (فوق كل شيء عدا الـtoast)
+ * z-[100]: Top-level alerts (نادر — للأخطاء الحرجة)
+ *
+ * ملاحظة: استخدم القيم الموثّقة فقط. لا تخترع z-index جديد.
+ * ============================================================ */
+
+
+/* حركة لهب بطاقة السلسلة (streak) */
+@keyframes flamewiggle {
+  0%, 100% { transform: rotate(-4deg) scale(1); }
+  50%      { transform: rotate(4deg) scale(1.06); }
+}
