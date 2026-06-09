@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Hero } from "@/components/Hero";
 import { AchievementsClient } from "@/components/AchievementsClient";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "إنجازاتي",
   description:
