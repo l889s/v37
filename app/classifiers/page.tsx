@@ -5,6 +5,8 @@ import { ClassifiersClient } from "@/components/ClassifiersClient";
 import { Skeleton } from "@/components/Skeleton";
 import { CLASSIFIER_LEVELS, ALL_CLASSIFIERS } from "@/lib/classifiersPro";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "كلمات الكمية",
   description:
