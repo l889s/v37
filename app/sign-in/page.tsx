@@ -4,12 +4,12 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from "../../hooks/useAuth";
 
 function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signIn } = useAuth();
+  const { signIn, loading: authLoading } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -87,7 +87,7 @@ function SignInForm() {
               placeholder="you@example.com"
               autoComplete="email"
               className="w-full rounded-lg border border-line bg-white py-3 pr-10 pl-3 text-[14px] text-ink outline-none transition-colors focus:border-coral"
-              disabled={loading}
+              disabled={loading || authLoading}
             />
           </div>
         </label>
@@ -108,7 +108,7 @@ function SignInForm() {
               placeholder="••••••••"
               autoComplete="current-password"
               className="w-full rounded-lg border border-line bg-white py-3 pr-10 pl-10 text-[14px] text-ink outline-none transition-colors focus:border-coral"
-              disabled={loading}
+              disabled={loading || authLoading}
             />
             <button
               type="button"
@@ -135,10 +135,10 @@ function SignInForm() {
         {/* زر الدخول */}
         <button
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || authLoading}
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-coral py-3.5 text-[15px] font-extrabold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
         >
-          {loading ? (
+          {(loading || authLoading) ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
               جارٍ الدخول…
