@@ -1,68 +1,23 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
+import { IBM_Plex_Sans_Arabic, Noto_Sans_SC } from "next/font/google";
 import "./globals.css";
-import { BottomNav } from "@/components/BottomNav";
-import { ToastProvider } from "@/components/Toast";
-import { getNavItems } from "@/lib/data";
+import { AuthProvider } from "../hooks/useAuth"; // ← مهم جداً
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+const ibmPlex = IBM_Plex_Sans_Arabic({
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-ibm-plex",
+});
+
+const notoSans = Noto_Sans_SC({
+  subsets: ["latin"],
+  weight: ["400", "500", "700", "900"],
+  variable: "--font-noto-sans",
+});
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: "HSK — تعلَّم الصينية بالعربية",
-    template: "%s · HSK",
-  },
-  description:
-    "تعلَّم كلمات HSK بأسلوب يناسب يومك المزدحم — نطق صوتي، مراجعة ذكية، وإنجازات تحفّزك.",
-  keywords: [
-    "HSK",
-    "تعلم الصينية",
-    "اللغة الصينية",
-    "Chinese learning",
-    "مفردات HSK",
-    "تعلم الصينية بالعربية",
-    "Spaced Repetition",
-  ],
-  authors: [{ name: "HSK App" }],
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    title: "HSK",
-    statusBarStyle: "default",
-  },
-  icons: {
-    icon: "/icons/icon-192.png",
-    apple: "/icons/icon-192.png",
-  },
-  openGraph: {
-    type: "website",
-    locale: "ar",
-    title: "HSK — تعلَّم الصينية بالعربية",
-    description:
-      "تعلَّم كلمات HSK بأسلوب يناسب يومك المزدحم — نطق صوتي ومراجعة ذكية.",
-    siteName: "HSK",
-  },
-  twitter: {
-    card: "summary",
-    title: "HSK — تعلَّم الصينية بالعربية",
-    description:
-      "تعلَّم كلمات HSK بأسلوب يناسب يومك المزدحم.",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-};
-
-export const viewport: Viewport = {
-  themeColor: "#FFFFFF",
-  width: "device-width",
-  initialScale: 1,
-  // نسمح بالتكبير حتى 5x — مهم للـaccessibility (WCAG 1.4.4)
-  maximumScale: 5,
-  userScalable: true,
+  title: "HSK - تعلم اللغة الصينية",
+  description: "تطبيق تعلم اللغة الصينية لاختبار HSK",
 };
 
 export default function RootLayout({
@@ -70,14 +25,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const navItems = getNavItems();
   return (
-    <html lang="ar" dir="rtl">
-      <body className="min-h-screen bg-white">
-        <ToastProvider>
+    <html lang="ar" dir="rtl" className={`${ibmPlex.variable} ${notoSans.variable}`}>
+      <body>
+        <AuthProvider>
           {children}
-          <BottomNav items={navItems} />
-        </ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   );
