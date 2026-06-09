@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans_Arabic, Noto_Sans_SC } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "../hooks/useAuth"; // ← مهم جداً
+import { AuthProvider } from "../hooks/useAuth";
+
+// يمكنك إضافة ToastProvider هنا إذا عندك
+// import { ToastProvider } from "@/components/Toast";
 
 const ibmPlex = IBM_Plex_Sans_Arabic({
   subsets: ["arabic", "latin"],
@@ -18,6 +21,9 @@ const notoSans = Noto_Sans_SC({
 export const metadata: Metadata = {
   title: "HSK - تعلم اللغة الصينية",
   description: "تطبيق تعلم اللغة الصينية لاختبار HSK",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
@@ -27,9 +33,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl" className={`${ibmPlex.variable} ${notoSans.variable}`}>
-      <body>
+      <body className="bg-[#FAFAF8] text-[#1a1a1a]">
         <AuthProvider>
+          {/* هنا تقدر تضيف ToastProvider إذا عندك */}
+          {/* <ToastProvider> */}
+
           {children}
+
+          {/* Bottom Navigation أو أي عناصر ثابتة */}
+          {/* <BottomNav /> */}
+
+          {/* </ToastProvider> */}
         </AuthProvider>
       </body>
     </html>
