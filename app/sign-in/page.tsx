@@ -18,7 +18,10 @@ function SignInForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // نعرض رسالة الخطأ القادمة من معالج التأكيد (?error=) إن وُجدت
+  const [error, setError] = useState<string | null>(
+    searchParams.get("error")
+  );
 
   async function handleSubmit() {
     setError(null);
