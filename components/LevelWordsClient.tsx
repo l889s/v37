@@ -1,20 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Search, X, Volume2, ArrowRight, ArrowDownAZ, Hash, ChevronDown } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { Search, X, Volume2, ArrowRight, ArrowDownAZ, Hash, ChevronDown, Lock } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useSpeech } from "@/lib/useSpeech";
 import { useToast } from "@/components/Toast";
 import type { Word, HskLevel } from "@/lib/types";
 import { useReadWords } from "@/lib/useReadWords";
+import { createClient } from "@/lib/supabase/client";
+
+const FREE_LIMIT = 50;
 
 type SortMode = "original" | "alpha";
 
-/**
- * صفحة كلمات المستوى — v3.17 (النسخة المعتمدة)
- * أكورديون مطابق للكلاسيفايرز: رأس ملوّن + قسم رمادي + بطاقة جملة بيضاء
- */
 export function LevelWordsClient({
   level,
   words,
@@ -25,9 +24,28 @@ export function LevelWordsClient({
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortMode>("original");
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [isPaid, setIsPaid] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const { speak, supported } = useSpeech();
   const { markRead } = useReadWords(level.id, words.length);
   const { toast } = useToast();
+
+  // فحص حالة الاشتراك
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) { setCheckingAuth(false); return; }
+      const { data } = await supabase
+        .from("profiles")
+        .select("subscription_status, role")
+        .eq("id", user.id)
+        .single();
+      if (data?.subscription_status === "paid" || data?.role === "admin") {
+        setIsPaid(true);
+      }
+      setCheckingAuth(false);
+    });
+  }, []);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -58,9 +76,11 @@ export function LevelWordsClient({
   }
 
   function toggleItem(i: number, wordId: string) {
+    // منع فتح الكلمات المقفلة
+    if (!isPaid && i >= FREE_LIMIT) return;
     setOpenIndex((prev) => {
       const opening = prev !== i;
-      if (opening) markRead(wordId); // تسجيل القراءة عند الفتح فقط
+      if (opening) markRead(wordId);
       return opening ? i : null;
     });
   }
@@ -108,6 +128,30 @@ export function LevelWordsClient({
           </div>
           <p className="mt-1.5 text-[13px] text-muted">{level.desc}</p>
         </div>
+
+        {/* شريط المجاني — يظهر فقط للغير مشتركين */}
+        {!isPaid && !checkingAuth && words.length > FREE_LIMIT && (
+          <div
+            className="mb-4 flex items-center justify-between rounded-xl px-4 py-3"
+            style={{ background: "#FFF8E7", border: "1px solid #FFD97D" }}
+          >
+            <div>
+              <p className="text-[13px] font-bold text-amber-800">
+                🆓 أول {FREE_LIMIT} كلمة مجانية
+              </p>
+              <p className="text-[11.5px] text-amber-700 mt-0.5">
+                اشترك للوصول لكل {words.length} كلمة
+              </p>
+            </div>
+            <Link
+              href="/sign-up"
+              className="rounded-lg px-4 py-2 text-[12.5px] font-bold text-white transition-colors"
+              style={{ background: level.color }}
+            >
+              اشترك الآن
+            </Link>
+          </div>
+        )}
 
         {/* البحث */}
         <div className="relative mb-4">
@@ -190,6 +234,7 @@ export function LevelWordsClient({
           >
             {visible.map((w, i) => {
               const isOpen = openIndex === i;
+              const isLocked = !isPaid && i >= FREE_LIMIT;
               const charSize =
                 w.w.length <= 1
                   ? "text-[28px]"
@@ -210,53 +255,85 @@ export function LevelWordsClient({
                   <button
                     className="flex w-full items-center gap-3 px-4 py-3.5 text-right transition-colors"
                     style={{
-                      background: isOpen ? level.soft : "#fff",
+                      background: isLocked
+                        ? "#F9F9F9"
+                        : isOpen
+                        ? level.soft
+                        : "#fff",
                       borderBottom: isOpen ? `3px solid ${level.color}` : undefined,
                     }}
                     onClick={() => toggleItem(i, `${level.id}:${w.w}`)}
                   >
-                    <ChevronDown
-                      className={cn("h-4 w-4 shrink-0 transition-transform", isOpen && "rotate-180")}
-                      style={{ color: isOpen ? level.color : "#B8B8B8" }}
-                    />
+                    {isLocked ? (
+                      <Lock className="h-4 w-4 shrink-0 text-gray-300" />
+                    ) : (
+                      <ChevronDown
+                        className={cn("h-4 w-4 shrink-0 transition-transform", isOpen && "rotate-180")}
+                        style={{ color: isOpen ? level.color : "#B8B8B8" }}
+                      />
+                    )}
+
                     <div className="min-w-0 flex-1">
                       <div
-                        className="text-[12px] font-semibold italic text-muted"
+                        className={cn(
+                          "text-[12px] font-semibold italic",
+                          isLocked ? "text-gray-300 blur-[3px]" : "text-muted"
+                        )}
                         style={{ direction: "ltr", textAlign: "right" }}
                       >
                         {w.p}
                       </div>
-                      <div className="text-[15px] font-extrabold leading-tight text-ink">
+                      <div
+                        className={cn(
+                          "text-[15px] font-extrabold leading-tight",
+                          isLocked ? "text-gray-300 blur-[3px]" : "text-ink"
+                        )}
+                      >
                         {w.m}
                       </div>
                     </div>
 
-                    {/* زر الكلمة */}
-                    <button
-                      className="shrink-0 rounded-lg px-3 py-1.5 text-[11.5px] font-bold transition-colors"
-                      style={{
-                        background: "#FFF1F0",
-                        color: "#C05C00",
-                        boxShadow: "inset 0 0 0 1px rgba(255,77,79,.2)",
-                      }}
-                      onClick={(e) => { e.stopPropagation(); play(w.w); }}
-                    >
-                      <span className="flex items-center gap-1">
-                        <Volume2 className="h-3 w-3" />
-                        الكلمة
-                      </span>
-                    </button>
+                    {/* زر الكلمة أو قفل */}
+                    {isLocked ? (
+                      <Link
+                        href="/sign-up"
+                        onClick={(e) => e.stopPropagation()}
+                        className="shrink-0 rounded-lg px-3 py-1.5 text-[11.5px] font-bold transition-colors"
+                        style={{
+                          background: "#F3F4F6",
+                          color: "#9CA3AF",
+                        }}
+                      >
+                        اشترك 🔒
+                      </Link>
+                    ) : (
+                      <button
+                        className="shrink-0 rounded-lg px-3 py-1.5 text-[11.5px] font-bold transition-colors"
+                        style={{
+                          background: "#FFF1F0",
+                          color: "#C05C00",
+                          boxShadow: "inset 0 0 0 1px rgba(255,77,79,.2)",
+                        }}
+                        onClick={(e) => { e.stopPropagation(); play(w.w); }}
+                      >
+                        <span className="flex items-center gap-1">
+                          <Volume2 className="h-3 w-3" />
+                          الكلمة
+                        </span>
+                      </button>
+                    )}
 
                     {/* أيقونة الحرف */}
                     <div
                       className={cn(
                         "flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-xl font-cn font-bold leading-none",
-                        charSize
+                        charSize,
+                        isLocked && "blur-[4px]"
                       )}
                       style={{
-                        background: isOpen ? "#fff" : level.soft,
-                        boxShadow: `inset 0 0 0 1.5px ${level.color}59`,
-                        color: level.color,
+                        background: isLocked ? "#F3F4F6" : isOpen ? "#fff" : level.soft,
+                        boxShadow: isLocked ? "none" : `inset 0 0 0 1.5px ${level.color}59`,
+                        color: isLocked ? "#D1D5DB" : level.color,
                       }}
                     >
                       {w.w}
@@ -264,9 +341,8 @@ export function LevelWordsClient({
                   </button>
 
                   {/* القسم الموسّع */}
-                  {isOpen && (
+                  {isOpen && !isLocked && (
                     <div className="px-4 pb-4 pt-3" style={{ background: "#F5F6F8" }}>
-                      {/* بطاقة الجملة — بيضاء بدون border */}
                       <div
                         className="mb-3 rounded-xl px-4 py-3.5"
                         style={{ background: "#ffffff" }}
@@ -277,7 +353,6 @@ export function LevelWordsClient({
                         >
                           {w.s}
                         </div>
-                        {/* الترجمة: 14px / weight-500 / #1A1A1A */}
                         <div
                           className="mt-1.5 leading-relaxed"
                           style={{ fontSize: "14px", fontWeight: 500, color: "#1A1A1A" }}
@@ -299,6 +374,30 @@ export function LevelWordsClient({
                           استمع للجملة
                         </button>
                       </div>
+                    </div>
+                  )}
+
+                  {/* بانر الاشتراك — يظهر عند الكلمة 51 فقط */}
+                  {isLocked && i === FREE_LIMIT && (
+                    <div
+                      className="flex items-center justify-between px-4 py-3"
+                      style={{ background: "#FFFBEB", borderTop: "2px solid #FCD34D" }}
+                    >
+                      <div>
+                        <p className="text-[13px] font-bold text-amber-800">
+                          🔒 وصلت للحد المجاني
+                        </p>
+                        <p className="text-[11.5px] text-amber-700">
+                          اشترك للوصول لباقي الكلمات
+                        </p>
+                      </div>
+                      <Link
+                        href="/sign-up"
+                        className="rounded-lg px-4 py-2 text-[12.5px] font-bold text-white"
+                        style={{ background: level.color }}
+                      >
+                        اشترك الآن
+                      </Link>
                     </div>
                   )}
                 </div>
