@@ -3,6 +3,7 @@ import "./globals.css";
 import { BottomNav } from "@/components/BottomNav";
 import { ToastProvider } from "@/components/Toast";
 import { AuthProvider } from "@/hooks/useAuth";
+import { Header } from "@/components/Header";
 import { getNavItems } from "@/lib/data";
 
 const SITE_URL =
@@ -61,7 +62,6 @@ export const viewport: Viewport = {
   themeColor: "#FFFFFF",
   width: "device-width",
   initialScale: 1,
-  // نسمح بالتكبير حتى 5x — مهم للـaccessibility (WCAG 1.4.4)
   maximumScale: 5,
   userScalable: true,
 };
@@ -77,6 +77,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-white">
         <AuthProvider>
           <ToastProvider>
+            <Header />
             {children}
             <BottomNav items={navItems} />
           </ToastProvider>
