@@ -9,10 +9,13 @@ import { todayISO } from "@/lib/spacedRepetition";
 import { cn } from "@/lib/utils";
 
 /**
- * كرت المستوى — هيكل 3 مناطق:
- *  1. الهوية: emoji + label + cn + desc
- *  2. الأعداد: المتاح بوضوح + السياق الرسمي
- *  3. الإجراء: التقدم + المستحقات + زر الابدأ
+ * كرت المستوى — v2
+ *
+ * التحسينات:
+ *  1. Gradient header بلون المستوى (أيقونة + اسم + badge)
+ *  2. شريط تقدم مع نسبة مئوية دائماً ظاهرة
+ *  3. "ابدأ التعلم الآن" بدل "لم تبدأ بعد"
+ *  4. تصميم أنظف بدون شريط عمودي
  */
 export function LevelCard({
   level,
@@ -41,145 +44,166 @@ export function LevelCard({
     hasData && practiced > 0 ? Math.round((practiced / availableTotal) * 100) : 0;
   const notStarted = practiced === 0;
 
-  // التغطية: قليلة جداً (<20%) للرسالة الودّية
   const coveragePct =
     officialTotal > 0 ? (availableTotal / officialTotal) * 100 : 0;
   const isLowCoverage = hasData && coveragePct < 20;
 
   return (
-    <article className="relative overflow-hidden rounded-lg border border-line bg-white shadow-card transition-shadow hover:shadow-cardHover">
-      {/* الشريط اللوني العمودي */}
-      <div
-        className="absolute right-0 top-0 h-full w-1.5"
-        style={{ background: level.color }}
-      />
+    <article className="overflow-hidden rounded-xl border border-line bg-white shadow-cardSoft transition-shadow hover:shadow-cardSoftHover">
 
-      <div className="p-5 pr-6">
-        {/* ============ منطقة 1: الهوية ============ */}
-        <div className="flex items-start gap-3.5">
+      {/* ====== Gradient Header ====== */}
+      <div
+        className="flex items-center justify-between px-4 py-3.5"
+        style={{
+          background: `linear-gradient(135deg, ${level.color}18 0%, ${level.color}08 100%)`,
+          borderBottom: `1px solid ${level.color}22`,
+        }}
+      >
+        {/* الأيقونة + الاسم */}
+        <div className="flex items-center gap-3">
           <div
-            className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-lg text-[28px]"
-            style={{ background: level.soft }}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-[26px]"
+            style={{
+              background: level.soft,
+              boxShadow: `inset 0 0 0 1.5px ${level.color}30`,
+            }}
           >
             {level.emoji}
           </div>
-          <div className="min-w-0 flex-1 pt-0.5">
+          <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-[17px] font-extrabold leading-tight text-ink">
+              <h3 className="text-[16px] font-extrabold text-ink">
                 {level.label}
               </h3>
               <span
-                className="rounded px-1.5 py-0.5 font-cn text-[10px] font-bold"
-                style={{ background: level.soft, color: level.color }}
+                className="rounded-lg px-2 py-0.5 font-cn text-[10.5px] font-extrabold"
+                style={{
+                  background: level.soft,
+                  color: level.color,
+                  boxShadow: `inset 0 0 0 1px ${level.color}33`,
+                }}
                 dir="ltr"
               >
                 {level.cn}
               </span>
             </div>
-            <p className="mt-1 text-[12px] leading-relaxed text-muted">
-              {level.desc}
-            </p>
+            <p className="mt-0.5 text-[11.5px] text-muted">{level.desc}</p>
           </div>
         </div>
 
-        {/* ============ منطقة 2: الأعداد ============ */}
-        {hasData ? (
-          <div className="mt-5 border-t border-line pt-4">
-            {/* المعلومة الرئيسية: المتاح — extrabold ink */}
-            <div className="text-[14px] font-extrabold text-ink leading-tight">
-              <span className="tabular-nums">{availableTotal}</span>
-              {" "}
-              كلمة متاحة
+        {/* عدد الكلمات */}
+        {hasData && (
+          <div className="text-left">
+            <div
+              className="text-[19px] font-extrabold tabular-nums leading-none"
+              style={{ color: level.color }}
+            >
+              {availableTotal.toLocaleString("en-US")}
             </div>
-            {/* السياق الثانوي: الرسمي — أصغر وأخف بكثير */}
-            <div className="mt-1 text-[10.5px] text-muted/80 leading-tight">
-              من{" "}
-              <span className="tabular-nums" dir="ltr">
-                {officialTotal.toLocaleString("en-US")}
-              </span>
-              {" "}في المنهج الرسمي
-            </div>
-
-            {/* رسالة ودّية لو التغطية منخفضة */}
-            {isLowCoverage && (
-              <div className="mt-3 flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2">
-                <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-700" />
-                <p className="text-[11px] leading-relaxed text-amber-700">
-                  ابدأ بالكلمات المتاحة الآن — سنضيف المزيد تدريجياً
-                </p>
-              </div>
-            )}
+            <div className="mt-0.5 text-[10px] text-muted">كلمة</div>
           </div>
-        ) : (
-          <div className="mt-5 border-t border-line pt-4">
-            <div className="rounded-lg bg-[#FAFAFA] px-3.5 py-3">
-              <div className="flex items-start gap-2.5">
-                <span className="text-[15px] leading-none mt-0.5">🌿</span>
-                <div className="min-w-0 flex-1">
-                  <div className="text-[13px] font-bold text-ink">قيد الإعداد</div>
-                  <p className="mt-1 text-[11px] leading-relaxed text-muted">
-                    نضيف كلمات هذا المستوى تدريجياً. جرّب مستوى آخر متاح حالياً.
-                  </p>
-                </div>
+        )}
+      </div>
+
+      {/* ====== Body ====== */}
+      <div className="p-4">
+
+        {/* حالة: لا توجد كلمات */}
+        {!hasData && (
+          <div className="rounded-lg border border-dashed border-line bg-[#FAFAFA] px-3.5 py-3">
+            <div className="flex items-start gap-2.5">
+              <span className="mt-0.5 text-[15px]">🌿</span>
+              <div>
+                <div className="text-[13px] font-bold text-ink">قيد الإعداد</div>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-muted">
+                  نضيف كلمات هذا المستوى تدريجياً.
+                </p>
               </div>
             </div>
           </div>
         )}
 
-        {/* ============ منطقة 3: الإجراء (التقدم + الزر) ============ */}
+        {/* حالة: فيه كلمات */}
         {hasData && (
-          <div className="mt-5 border-t border-line pt-4">
-            {/* شريط التقدم */}
-            <div className="mb-4">
-              <div className="mb-2 flex items-center justify-between text-[11px]">
-                <span className="font-semibold text-muted">
-                  {notStarted ? "لم تبدأ بعد" : "تقدمك"}
+          <>
+            {/* رسالة التغطية المنخفضة */}
+            {isLowCoverage && (
+              <div
+                className="mb-3 flex items-start gap-2 rounded-lg px-3 py-2"
+                style={{ background: level.soft }}
+              >
+                <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: level.color }} />
+                <p className="text-[11px] leading-relaxed" style={{ color: level.color }}>
+                  ابدأ بالكلمات المتاحة الآن — سنضيف المزيد تدريجياً
+                </p>
+              </div>
+            )}
+
+            {/* ====== شريط التقدم ====== */}
+            <div className="mb-3.5">
+              <div className="mb-1.5 flex items-center justify-between">
+                <span className="text-[11.5px] font-semibold text-muted">
+                  {notStarted ? "ابدأ التعلم الآن" : "تقدمك"}
                 </span>
-                {!notStarted && (
-                  <span
-                    className="font-extrabold tabular-nums"
-                    style={{ color: level.color }}
-                  >
-                    {progressPct}%
-                  </span>
+                <span
+                  className="text-[12px] font-extrabold tabular-nums"
+                  style={{ color: notStarted ? "#B0B0B0" : level.color }}
+                >
+                  {progressPct}% مكتمل
+                </span>
+              </div>
+              {/* خلفية الشريط */}
+              <div className="relative h-2.5 overflow-hidden rounded-full bg-[#EFEFEF]">
+                {/* الجزء المكتمل */}
+                {progressPct > 0 && (
+                  <div
+                    className="absolute inset-y-0 right-0 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${progressPct}%`,
+                      background: `linear-gradient(90deg, ${level.color}BB, ${level.color})`,
+                    }}
+                  />
                 )}
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-[#F0F0F0]">
-                <div
-                  className="h-full transition-all duration-500"
-                  style={{
-                    width: `${progressPct}%`,
-                    background: level.color,
-                  }}
-                />
+              {/* تفاصيل صغيرة تحت الشريط */}
+              <div className="mt-1.5 flex items-center justify-between text-[10px] text-muted">
+                <span>
+                  {practiced > 0
+                    ? `${practiced} من ${availableTotal} كلمة`
+                    : `${availableTotal} كلمة جديدة`}
+                </span>
+                <span dir="ltr">
+                  من {officialTotal.toLocaleString("en-US")} رسمياً
+                </span>
               </div>
             </div>
 
-            {/* المستحقات + الزر */}
+            {/* ====== الإجراء: مستحقات + زر ====== */}
             <div className="flex items-center justify-between gap-2">
               {due > 0 ? (
                 <div
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold",
-                    notStarted
-                      ? "bg-mint-soft text-mint-deep"
-                      : "bg-coral-soft text-coral"
-                  )}
+                  className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold"
+                  style={{
+                    background: level.soft,
+                    color: level.color,
+                    boxShadow: `inset 0 0 0 1px ${level.color}22`,
+                  }}
                 >
                   <span className="h-1.5 w-1.5 rounded-full bg-current" />
                   {notStarted
-                    ? `${availableTotal} ${availableTotal === 1 ? "كلمة جديدة" : "كلمات جديدة"}`
+                    ? `${availableTotal} ${availableTotal === 1 ? "كلمة جديدة" : "كلمة للبدء"}`
                     : `${due} مستحقة`}
                 </div>
               ) : (
-                <div className="text-[11px] font-semibold text-mint-deep">
-                  ✓ كل شيء محدّث
+                <div className="flex items-center gap-1 text-[11px] font-semibold text-mint-deep">
+                  <span className="text-base">✓</span>
+                  كل شيء محدّث
                 </div>
               )}
 
               <Link
                 href={`/hsk-levels/${level.id}`}
-                className="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[12px] font-bold text-white transition-opacity hover:opacity-90"
+                className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-[12.5px] font-bold text-white transition-opacity hover:opacity-90 active:opacity-80"
                 style={{ background: level.color }}
               >
                 <Play className="h-3.5 w-3.5 fill-current" />
@@ -187,7 +211,7 @@ export function LevelCard({
                 <ChevronLeft className="h-3.5 w-3.5" />
               </Link>
             </div>
-          </div>
+          </>
         )}
       </div>
     </article>
