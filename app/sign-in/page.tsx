@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 
 /**
  * النموذج الفعلي — منفصل لأن useSearchParams يتطلّب Suspense في Next.js 15.
