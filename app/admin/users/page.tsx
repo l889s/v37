@@ -6,15 +6,19 @@ import { useEffect, useState } from "react";
 type Profile = {
   id: string;
   full_name: string | null;
+  email: string | null;
   subscription_status: string | null;
   role: string | null;
   created_at: string;
 };
 
+type FilterType = "all" | "free" | "paid";
+
 export default function UsersPage() {
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<FilterType>("all");
   const [updating, setUpdating] = useState<string | null>(null);
 
   const supabase = createClient();
@@ -26,8 +30,8 @@ export default function UsersPage() {
   async function fetchUsers() {
     setLoading(true);
     const { data } = await supabase
-      .from("profiles")
-      .select("id, full_name, subscription_status, role, created_at")
+      .from("profiles_with_email")
+      .select("id, full_name, email, subscription_status, role, created_at")
       .order("created_at", { ascending: false });
     setUsers(data || []);
     setLoading(false);
@@ -43,9 +47,22 @@ export default function UsersPage() {
     setUpdating(null);
   }
 
-  const filtered = users.filter((u) =>
-    (u.full_name || "").toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = users.filter((u) => {
+    const matchSearch =
+      (u.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (u.email || "").toLowerCase().includes(search.toLowerCase());
+    const matchFilter =
+      filter === "all" ||
+      (filter === "free" && u.subscription_status !== "paid") ||
+      (filter === "paid" && u.subscription_status === "paid");
+    return matchSearch && matchFilter;
+  });
+
+  const counts = {
+    all: users.length,
+    free: users.filter((u) => u.subscription_status !== "paid").length,
+    paid: users.filter((u) => u.subscription_status === "paid").length,
+  };
 
   return (
     <div>
@@ -59,18 +76,36 @@ export default function UsersPage() {
         </span>
       </div>
 
-      {/* Search */}
+      {/* فلاتر الاشتراك */}
+      <div className="flex gap-2 mb-5">
+        {(["all", "free", "paid"] as FilterType[]).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+              filter === f
+                ? "bg-violet-600 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {f === "all" ? "الكل" : f === "free" ? "مجاني" : "مدفوع"}
+            <span className="mr-1.5 opacity-70">({counts[f]})</span>
+          </button>
+        ))}
+      </div>
+
+      {/* بحث */}
       <div className="mb-6">
         <input
           type="text"
-          placeholder="ابحث باسم المستخدم..."
+          placeholder="ابحث بالاسم أو الإيميل..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full max-w-sm px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-300 text-right"
         />
       </div>
 
-      {/* Table */}
+      {/* جدول */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-gray-400">جاري التحميل...</div>
@@ -79,6 +114,7 @@ export default function UsersPage() {
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">الاسم</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-600">الإيميل</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">تاريخ التسجيل</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">الدور</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">الاشتراك</th>
@@ -90,6 +126,9 @@ export default function UsersPage() {
                 <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-medium text-gray-900">
                     {user.full_name || "بدون اسم"}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500 dir-ltr">
+                    {user.email || "—"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {new Date(user.created_at).toLocaleDateString("ar-SA")}
@@ -114,7 +153,7 @@ export default function UsersPage() {
                   </td>
                   <td className="px-6 py-4">
                     {updating === user.id ? (
-                      <span className="text-sm text-gray-400">جاري التحديث...</span>
+                      <span className="text-sm text-gray-400">جاري...</span>
                     ) : user.subscription_status === "paid" ? (
                       <button
                         onClick={() => updateSubscription(user.id, "free")}
@@ -135,7 +174,7 @@ export default function UsersPage() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
                     لا يوجد مستخدمون
                   </td>
                 </tr>

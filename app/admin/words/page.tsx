@@ -20,13 +20,12 @@ export default function WordsPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [editingWord, setEditingWord] = useState<Word | null>(null);
   const [newWord, setNewWord] = useState({ chinese: "", pinyin: "", arabic: "", hsk: 1 });
 
   const supabase = createClient();
 
-  useEffect(() => {
-    fetchWords();
-  }, []);
+  useEffect(() => { fetchWords(); }, []);
 
   async function fetchWords() {
     setLoading(true);
@@ -45,6 +44,23 @@ export default function WordsPage() {
     await fetchWords();
     setNewWord({ chinese: "", pinyin: "", arabic: "", hsk: 1 });
     setShowAdd(false);
+    setSaving(false);
+  }
+
+  async function saveEdit() {
+    if (!editingWord) return;
+    setSaving(true);
+    await supabase
+      .from("words")
+      .update({
+        chinese: editingWord.chinese,
+        pinyin: editingWord.pinyin,
+        arabic: editingWord.arabic,
+        hsk: editingWord.hsk,
+      })
+      .eq("id", editingWord.id);
+    await fetchWords();
+    setEditingWord(null);
     setSaving(false);
   }
 
@@ -69,9 +85,7 @@ export default function WordsPage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">إدارة الكلمات</h2>
-          <p className="text-gray-500 mt-1">
-            {words.length} كلمة في قاعدة البيانات
-          </p>
+          <p className="text-gray-500 mt-1">{words.length} كلمة في قاعدة البيانات</p>
         </div>
         <button
           onClick={() => setShowAdd(true)}
@@ -81,75 +95,55 @@ export default function WordsPage() {
         </button>
       </div>
 
-      {/* Filters */}
+      {/* فلاتر */}
       <div className="flex gap-3 mb-6 flex-wrap">
         <input
           type="text"
-          placeholder="ابحث بالصيني أو العربي أو البينيين..."
+          placeholder="ابحث..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-300 text-right flex-1 min-w-48"
         />
         <select
           value={hskFilter}
-          onChange={(e) =>
-            setHskFilter(e.target.value === "all" ? "all" : Number(e.target.value))
-          }
-          className="px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-300"
+          onChange={(e) => setHskFilter(e.target.value === "all" ? "all" : Number(e.target.value))}
+          className="px-4 py-2 rounded-xl border border-gray-200 focus:outline-none"
         >
           <option value="all">كل المستويات</option>
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+          {[1,2,3,4,5,6,7,8,9].map((n) => (
             <option key={n} value={n}>HSK {n}</option>
           ))}
         </select>
       </div>
 
-      {/* Add Word Modal */}
+      {/* Modal إضافة */}
       {showAdd && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl" dir="rtl">
             <h3 className="text-lg font-bold mb-4">إضافة كلمة جديدة</h3>
             <div className="space-y-3">
-              <input
-                placeholder="الكلمة بالصينية *"
-                value={newWord.chinese}
+              <input placeholder="الكلمة بالصينية *" value={newWord.chinese}
                 onChange={(e) => setNewWord({ ...newWord, chinese: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300"
-              />
-              <input
-                placeholder="البينيين"
-                value={newWord.pinyin}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300" />
+              <input placeholder="البينيين" value={newWord.pinyin}
                 onChange={(e) => setNewWord({ ...newWord, pinyin: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300"
-              />
-              <input
-                placeholder="المعنى بالعربي *"
-                value={newWord.arabic}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300" />
+              <input placeholder="المعنى بالعربي *" value={newWord.arabic}
                 onChange={(e) => setNewWord({ ...newWord, arabic: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300"
-              />
-              <select
-                value={newWord.hsk}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300" />
+              <select value={newWord.hsk}
                 onChange={(e) => setNewWord({ ...newWord, hsk: Number(e.target.value) })}
-                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none"
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-                  <option key={n} value={n}>HSK {n}</option>
-                ))}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none">
+                {[1,2,3,4,5,6,7,8,9].map((n) => <option key={n} value={n}>HSK {n}</option>)}
               </select>
             </div>
             <div className="flex gap-3 mt-5">
-              <button
-                onClick={addWord}
-                disabled={saving || !newWord.chinese || !newWord.arabic}
-                className="flex-1 bg-violet-600 text-white py-2 rounded-xl font-medium hover:bg-violet-700 disabled:opacity-50"
-              >
+              <button onClick={addWord} disabled={saving || !newWord.chinese || !newWord.arabic}
+                className="flex-1 bg-violet-600 text-white py-2 rounded-xl font-medium hover:bg-violet-700 disabled:opacity-50">
                 {saving ? "جاري الحفظ..." : "إضافة"}
               </button>
-              <button
-                onClick={() => setShowAdd(false)}
-                className="flex-1 border border-gray-200 py-2 rounded-xl text-gray-600 hover:bg-gray-50"
-              >
+              <button onClick={() => setShowAdd(false)}
+                className="flex-1 border border-gray-200 py-2 rounded-xl text-gray-600 hover:bg-gray-50">
                 إلغاء
               </button>
             </div>
@@ -157,7 +151,42 @@ export default function WordsPage() {
         </div>
       )}
 
-      {/* Words Table */}
+      {/* Modal تعديل */}
+      {editingWord && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl" dir="rtl">
+            <h3 className="text-lg font-bold mb-4">تعديل الكلمة</h3>
+            <div className="space-y-3">
+              <input placeholder="الكلمة بالصينية *" value={editingWord.chinese}
+                onChange={(e) => setEditingWord({ ...editingWord, chinese: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300" />
+              <input placeholder="البينيين" value={editingWord.pinyin}
+                onChange={(e) => setEditingWord({ ...editingWord, pinyin: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300" />
+              <input placeholder="المعنى بالعربي *" value={editingWord.arabic}
+                onChange={(e) => setEditingWord({ ...editingWord, arabic: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300" />
+              <select value={editingWord.hsk}
+                onChange={(e) => setEditingWord({ ...editingWord, hsk: Number(e.target.value) })}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none">
+                {[1,2,3,4,5,6,7,8,9].map((n) => <option key={n} value={n}>HSK {n}</option>)}
+              </select>
+            </div>
+            <div className="flex gap-3 mt-5">
+              <button onClick={saveEdit} disabled={saving}
+                className="flex-1 bg-violet-600 text-white py-2 rounded-xl font-medium hover:bg-violet-700 disabled:opacity-50">
+                {saving ? "جاري الحفظ..." : "حفظ التعديل"}
+              </button>
+              <button onClick={() => setEditingWord(null)}
+                className="flex-1 border border-gray-200 py-2 rounded-xl text-gray-600 hover:bg-gray-50">
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* جدول الكلمات */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-gray-400">جاري التحميل...</div>
@@ -169,7 +198,7 @@ export default function WordsPage() {
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">البينيين</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">المعنى</th>
                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">المستوى</th>
-                <th className="px-6 py-4 text-sm font-semibold text-gray-600">إجراء</th>
+                <th className="px-6 py-4 text-sm font-semibold text-gray-600">إجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -183,9 +212,15 @@ export default function WordsPage() {
                       HSK {word.hsk}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 flex gap-3">
+                    <button
+                      onClick={() => setEditingWord(word)}
+                      className="text-sm text-violet-500 hover:text-violet-700 font-medium"
+                    >
+                      تعديل
+                    </button>
                     {deleting === word.id ? (
-                      <span className="text-sm text-gray-400">جاري الحذف...</span>
+                      <span className="text-sm text-gray-400">جاري...</span>
                     ) : (
                       <button
                         onClick={() => deleteWord(word.id)}
@@ -197,11 +232,9 @@ export default function WordsPage() {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && !loading && (
+              {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
-                    لا توجد كلمات
-                  </td>
+                  <td colSpan={5} className="px-6 py-12 text-center text-gray-400">لا توجد كلمات</td>
                 </tr>
               )}
             </tbody>
