@@ -1,13 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, X, Volume2, ArrowRight } from "lucide-react";
+import { Search, X, Volume2, ArrowRight, ArrowDownAZ, Hash, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useSpeech } from "@/lib/useSpeech";
 import { useToast } from "@/components/Toast";
 import type { Word, HskLevel } from "@/lib/types";
 
+type SortMode = "original" | "alpha";
+
+/**
+ * صفحة كلمات المستوى — v3.17 (النسخة المعتمدة)
+ * أكورديون مطابق للكلاسيفايرز: رأس ملوّن + قسم رمادي + بطاقة جملة بيضاء
+ */
 export function LevelWordsClient({
   level,
   words,
@@ -16,21 +22,30 @@ export function LevelWordsClient({
   words: Word[];
 }) {
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<SortMode>("original");
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
   const { speak, supported } = useSpeech();
   const { toast } = useToast();
 
-  const filtered = useMemo(() => {
+  const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return words;
-    return words.filter(
-      (w) =>
-        w.w.includes(q) ||
-        w.p.toLowerCase().includes(q) ||
-        w.m.includes(q) ||
-        w.s.includes(q) ||
-        w.sa.includes(q)
-    );
-  }, [words, query]);
+    const filtered = q
+      ? words.filter(
+          (w) =>
+            w.w.includes(q) ||
+            w.p.toLowerCase().includes(q) ||
+            w.m.includes(q) ||
+            w.s.includes(q) ||
+            w.sa.includes(q)
+        )
+      : words;
+    if (sort === "alpha") {
+      return [...filtered].sort((a, b) =>
+        a.p.localeCompare(b.p, "en", { sensitivity: "base" })
+      );
+    }
+    return filtered;
+  }, [words, query, sort]);
 
   function play(text: string) {
     if (!supported) {
@@ -40,12 +55,16 @@ export function LevelWordsClient({
     speak(text);
   }
 
+  function toggleItem(i: number) {
+    setOpenIndex((prev) => (prev === i ? null : i));
+  }
+
   return (
     <>
-      {/* رأس بلون المستوى */}
+      {/* رأس الصفحة */}
       <div
-        style={{ background: level.color }}
         className="flex items-center justify-between px-4 py-3"
+        style={{ background: level.color }}
       >
         <Link
           href="/hsk-levels"
@@ -58,139 +77,251 @@ export function LevelWordsClient({
           <span className="text-[15px] font-extrabold text-white">
             {level.emoji} {level.label}
           </span>
-          <span className="rounded-full bg-white/20 px-3 py-0.5 text-[11px] font-bold text-white">
+          <span className="rounded-full bg-white/20 px-3 py-0.5 text-[11px] font-extrabold text-white tabular-nums">
             {words.length}
           </span>
         </div>
       </div>
 
       <div className="mx-auto max-w-2xl px-4 py-5 sm:px-5">
-        {/* عنوان وشرح */}
+        {/* العنوان */}
         <div className="mb-5">
-          <h2 className="mb-1.5 text-2xl font-extrabold text-ink">
-            {level.label} <span className="font-cn text-[15px] text-muted">— {level.cn}</span>
-          </h2>
-          <p className="text-[13px] text-muted">{level.desc}</p>
+          <div className="flex items-baseline gap-2.5">
+            <h2 className="text-2xl font-extrabold text-ink">{level.label}</h2>
+            <span
+              className="rounded-lg px-2.5 py-0.5 font-cn text-[12px] font-extrabold"
+              style={{
+                background: level.soft,
+                color: level.color,
+                boxShadow: `inset 0 0 0 1px ${level.color}33`,
+              }}
+              dir="ltr"
+            >
+              {level.cn}
+            </span>
+          </div>
+          <p className="mt-1.5 text-[13px] text-muted">{level.desc}</p>
         </div>
 
         {/* البحث */}
         <div className="relative mb-4">
+          <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <input
-            type="text"
+            type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="ابحث: صيني / بينيين / عربي..."
-            dir="rtl"
-            className={cn(
-              "w-full rounded-lg border bg-white px-12 py-3.5 text-[15px] outline-none transition-colors",
-              query ? "" : "border-[#E8E8E8]"
-            )}
+            className="w-full rounded-lg border border-line bg-white py-3 pr-10 pl-10 text-[13.5px] outline-none transition-colors"
             style={query ? { borderColor: level.color } : undefined}
           />
-          <Search className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#B0B0B0]" />
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#B0B0B0]"
-              aria-label="مسح"
+              className="absolute left-3 top-1/2 -translate-y-1/2 rounded p-1 text-muted hover:bg-[#F0F0F0]"
             >
-              <X className="h-5 w-5" />
+              <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
 
-        <div className="mb-4 text-xs font-semibold text-muted">
-          {filtered.length} كلمة{query && ` من ${words.length}`}
+        {/* الترتيب + العدّاد */}
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <SortChip active={sort === "original"} onClick={() => setSort("original")}
+              icon={<Hash className="h-3 w-3" />} color={level.color} soft={level.soft}>
+              المنهج
+            </SortChip>
+            <SortChip active={sort === "alpha"} onClick={() => setSort("alpha")}
+              icon={<ArrowDownAZ className="h-3 w-3" />} color={level.color} soft={level.soft}>
+              أبجدي
+            </SortChip>
+          </div>
+          <div className="text-[11px] font-bold text-muted tabular-nums">
+            {visible.length}
+            {query && <> من <span dir="ltr">{words.length}</span></>}
+          </div>
         </div>
 
-        {/* كروت الكلمات */}
-        <div className="flex flex-col gap-3.5">
-          {words.length === 0 && (
-            <div className="rounded-lg bg-[#F7F7F7] p-8 text-center text-[13px] text-muted">
-              عيّنة الكلمات لهذا المستوى ستُضاف لاحقاً
-            </div>
-          )}
-          {filtered.length === 0 && words.length > 0 && (
-            <div className="rounded-lg bg-[#F7F7F7] p-8 text-center text-[13px] text-muted">
-              لا توجد نتائج
-            </div>
-          )}
-
-          {filtered.map((w, i) => (
-            <article
-              key={i}
-              className="relative overflow-hidden rounded-3xl border border-[#F0F0F0] bg-white p-5 shadow-card"
+        {/* رأس القسم */}
+        <div className="mb-1 flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-[12px] font-semibold text-muted">{level.cn}</span>
+            <span
+              className="rounded-lg px-3 py-1 text-[12px] font-extrabold text-white"
+              style={{ background: level.color }}
             >
-              {/* شريط لوني علوي */}
-              <div
-                className="absolute inset-x-0 top-0 h-1"
-                style={{ background: level.color }}
-              />
-
-              <div className="mt-1.5 flex items-start justify-between">
-                <button
-                  onClick={() => play(w.w)}
-                  className="flex-1 cursor-pointer text-right"
-                >
-                  <div
-                    className="font-cn text-5xl font-bold leading-tight"
-                    style={{ color: level.color, direction: "ltr", textAlign: "left" }}
-                  >
-                    {w.w}
-                  </div>
-                  <div
-                    className="mt-1 text-[13px] italic text-muted"
-                    style={{ direction: "ltr", textAlign: "left" }}
-                  >
-                    {w.p}
-                  </div>
-                </button>
-              </div>
-
-              {/* المعنى */}
-              <div
-                className="my-3 rounded-lg px-3 py-2.5 text-right text-[13px] font-bold text-ink"
-                style={{ background: level.soft }}
-              >
-                📖 {w.m}
-              </div>
-
-              {/* الجملة */}
-              <button
-                onClick={() => play(w.s)}
-                className="block w-full text-left"
-                style={{ direction: "ltr" }}
-              >
-                <div className="font-cn text-[17px] leading-relaxed text-[#2A2A2A]">
-                  {w.s}
-                </div>
-              </button>
-              <div className="mb-3 mt-1 text-right text-[13px] text-muted">
-                {w.sa}
-              </div>
-
-              {/* أزرار الصوت */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => play(w.w)}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 text-[13px] font-bold text-white"
-                  style={{ background: level.color }}
-                >
-                  <Volume2 className="h-3.5 w-3.5" />
-                  الكلمة
-                </button>
-                <button
-                  onClick={() => play(w.s)}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#F7F7F7] py-2.5 text-[13px] font-bold text-muted hover:bg-[#EEEEEE]"
-                >
-                  <Volume2 className="h-3.5 w-3.5" />
-                  الجملة
-                </button>
-              </div>
-            </article>
-          ))}
+              {level.label}
+            </span>
+          </div>
+          <span className="text-[12px] text-muted">{visible.length} كلمة</span>
         </div>
+
+        {/* حالات فارغة */}
+        {words.length === 0 && (
+          <div className="rounded-lg border border-dashed border-line bg-[#FAFAFA] px-4 py-10 text-center">
+            <div className="mb-2 text-2xl">🌱</div>
+            <div className="text-[13px] font-bold text-ink">قيد الإعداد</div>
+            <p className="mt-1 text-[11.5px] text-muted">ستُضاف الكلمات تدريجياً</p>
+          </div>
+        )}
+        {words.length > 0 && visible.length === 0 && (
+          <div className="rounded-lg border border-dashed border-line bg-[#FAFAFA] px-4 py-10 text-center">
+            <div className="mb-2 text-2xl">🔍</div>
+            <div className="text-[13px] font-bold text-ink">لا توجد نتائج</div>
+            <p className="mt-1 text-[11.5px] text-muted">جرّب كلمة بحث مختلفة</p>
+          </div>
+        )}
+
+        {/* القائمة الأكورديون */}
+        {visible.length > 0 && (
+          <div
+            className="overflow-hidden rounded-xl bg-white"
+            style={{
+              border: "1px solid #CECECE",
+              boxShadow:
+                "0 2px 6px rgba(17,24,39,.07),0 8px 20px rgba(17,24,39,.10),0 20px 44px rgba(17,24,39,.09)",
+            }}
+          >
+            {visible.map((w, i) => {
+              const isOpen = openIndex === i;
+              const charSize =
+                w.w.length <= 1
+                  ? "text-[28px]"
+                  : w.w.length === 2
+                  ? "text-[21px]"
+                  : "text-[16px]";
+
+              return (
+                <div
+                  key={`${w.w}-${i}`}
+                  style={
+                    i < visible.length - 1
+                      ? { borderBottom: "1px solid #D0D0D0" }
+                      : undefined
+                  }
+                >
+                  {/* صف الكلمة */}
+                  <button
+                    className="flex w-full items-center gap-3 px-4 py-3.5 text-right transition-colors"
+                    style={{
+                      background: isOpen ? level.soft : "#fff",
+                      borderBottom: isOpen ? `3px solid ${level.color}` : undefined,
+                    }}
+                    onClick={() => toggleItem(i)}
+                  >
+                    <ChevronDown
+                      className={cn("h-4 w-4 shrink-0 transition-transform", isOpen && "rotate-180")}
+                      style={{ color: isOpen ? level.color : "#B8B8B8" }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div
+                        className="text-[12px] font-semibold italic text-muted"
+                        style={{ direction: "ltr", textAlign: "right" }}
+                      >
+                        {w.p}
+                      </div>
+                      <div className="text-[15px] font-extrabold leading-tight text-ink">
+                        {w.m}
+                      </div>
+                    </div>
+
+                    {/* زر الكلمة */}
+                    <button
+                      className="shrink-0 rounded-lg px-3 py-1.5 text-[11.5px] font-bold transition-colors"
+                      style={{
+                        background: "#FFF1F0",
+                        color: "#C05C00",
+                        boxShadow: "inset 0 0 0 1px rgba(255,77,79,.2)",
+                      }}
+                      onClick={(e) => { e.stopPropagation(); play(w.w); }}
+                    >
+                      <span className="flex items-center gap-1">
+                        <Volume2 className="h-3 w-3" />
+                        الكلمة
+                      </span>
+                    </button>
+
+                    {/* أيقونة الحرف */}
+                    <div
+                      className={cn(
+                        "flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-xl font-cn font-bold leading-none",
+                        charSize
+                      )}
+                      style={{
+                        background: isOpen ? "#fff" : level.soft,
+                        boxShadow: `inset 0 0 0 1.5px ${level.color}59`,
+                        color: level.color,
+                      }}
+                    >
+                      {w.w}
+                    </div>
+                  </button>
+
+                  {/* القسم الموسّع */}
+                  {isOpen && (
+                    <div className="px-4 pb-4 pt-3" style={{ background: "#F5F6F8" }}>
+                      {/* بطاقة الجملة — بيضاء بدون border */}
+                      <div
+                        className="mb-3 rounded-xl px-4 py-3.5"
+                        style={{ background: "#ffffff" }}
+                      >
+                        <div
+                          className="font-cn text-[17px] leading-relaxed text-ink"
+                          style={{ direction: "ltr", textAlign: "left" }}
+                        >
+                          {w.s}
+                        </div>
+                        {/* الترجمة: 14px / weight-500 / #1A1A1A */}
+                        <div
+                          className="mt-1.5 leading-relaxed"
+                          style={{ fontSize: "14px", fontWeight: 500, color: "#1A1A1A" }}
+                        >
+                          {w.sa}
+                        </div>
+                      </div>
+                      <div className="flex justify-end">
+                        <button
+                          className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-[12.5px] font-bold transition-colors"
+                          style={{
+                            background: "#FFF1F0",
+                            color: "#C05C00",
+                            boxShadow: "inset 0 0 0 1px rgba(255,77,79,.2)",
+                          }}
+                          onClick={() => play(w.s)}
+                        >
+                          <Volume2 className="h-3.5 w-3.5" />
+                          استمع للجملة
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </>
+  );
+}
+
+function SortChip({
+  active, onClick, icon, children, color, soft,
+}: {
+  active: boolean; onClick: () => void; icon: React.ReactNode;
+  children: React.ReactNode; color: string; soft: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11.5px] font-bold transition-colors",
+        active ? "" : "text-muted hover:bg-[#F0F0F0]"
+      )}
+      style={active ? { background: soft, color, boxShadow: `inset 0 0 0 1px ${color}33` } : undefined}
+    >
+      {icon}
+      {children}
+    </button>
   );
 }
