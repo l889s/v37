@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { User, LogOut } from "lucide-react";
 
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const router = useRouter();
 
   async function handleSignOut() {
@@ -21,13 +21,16 @@ export function Header() {
       dir="rtl"
     >
       <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
-        {/* الشعار */}
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-extrabold text-ink">中 HSK</span>
         </Link>
 
-        {/* أزرار الحالة */}
-        {user ? (
+        {loading ? (
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-24 rounded-xl bg-gray-100 animate-pulse" />
+            <div className="h-8 w-24 rounded-xl bg-gray-100 animate-pulse" />
+          </div>
+        ) : user ? (
           <div className="flex items-center gap-2">
             <Link
               href="/dashboard"
