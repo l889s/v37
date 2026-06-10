@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, Play, Sparkles } from "lucide-react";
+import { Play, Sparkles, BookOpen } from "lucide-react";
 import type { HskLevel } from "@/lib/types";
 import type { SrsCard } from "@/lib/spacedRepetition";
 import { getWordsForLevel, wordIdFor } from "@/lib/data";
@@ -178,8 +178,10 @@ export function LevelCard({
               </div>
             </div>
 
-            {/* ====== الإجراء: مستحقات + زر ====== */}
-            <div className="flex items-center justify-between gap-2">
+            {/* ====== الإجراء: مستحقات + زرّان ====== */}
+
+            {/* badge المستحقات */}
+            <div className="mb-2.5 flex items-center justify-between">
               {due > 0 ? (
                 <div
                   className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold"
@@ -200,15 +202,32 @@ export function LevelCard({
                   كل شيء محدّث
                 </div>
               )}
+            </div>
 
+            {/* زرّان: القاموس + التمرين */}
+            <div className="grid grid-cols-2 gap-2">
+              {/* زر القاموس — outlined */}
               <Link
                 href={`/hsk-levels/${level.id}`}
-                className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-[12.5px] font-bold text-white transition-opacity hover:opacity-90 active:opacity-80"
+                className="flex items-center justify-center gap-1.5 rounded-lg border py-2.5 text-[12.5px] font-bold transition-opacity hover:opacity-80 active:opacity-70"
+                style={{
+                  borderColor: `${level.color}55`,
+                  color: level.color,
+                  background: level.soft,
+                }}
+              >
+                <BookOpen className="h-3.5 w-3.5" />
+                القاموس
+              </Link>
+
+              {/* زر التمرين — filled */}
+              <Link
+                href={`/practice/${level.id}`}
+                className="flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-[12.5px] font-bold text-white transition-opacity hover:opacity-90 active:opacity-80"
                 style={{ background: level.color }}
               >
                 <Play className="h-3.5 w-3.5 fill-current" />
-                ابدأ
-                <ChevronLeft className="h-3.5 w-3.5" />
+                تمرين
               </Link>
             </div>
           </>
