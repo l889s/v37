@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useSpeech } from "@/lib/useSpeech";
 import { useToast } from "@/components/Toast";
 import type { Word, HskLevel } from "@/lib/types";
+import { useReadWords } from "@/lib/useReadWords";
 
 type SortMode = "original" | "alpha";
 
@@ -25,6 +26,7 @@ export function LevelWordsClient({
   const [sort, setSort] = useState<SortMode>("original");
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const { speak, supported } = useSpeech();
+  const { markRead } = useReadWords(level.id, words.length);
   const { toast } = useToast();
 
   const visible = useMemo(() => {
@@ -55,8 +57,12 @@ export function LevelWordsClient({
     speak(text);
   }
 
-  function toggleItem(i: number) {
-    setOpenIndex((prev) => (prev === i ? null : i));
+  function toggleItem(i: number, wordId: string) {
+    setOpenIndex((prev) => {
+      const opening = prev !== i;
+      if (opening) markRead(wordId); // تسجيل القراءة عند الفتح فقط
+      return opening ? i : null;
+    });
   }
 
   return (
@@ -207,7 +213,7 @@ export function LevelWordsClient({
                       background: isOpen ? level.soft : "#fff",
                       borderBottom: isOpen ? `3px solid ${level.color}` : undefined,
                     }}
-                    onClick={() => toggleItem(i)}
+                    onClick={() => toggleItem(i, `${level.id}:${w.w}`)}
                   >
                     <ChevronDown
                       className={cn("h-4 w-4 shrink-0 transition-transform", isOpen && "rotate-180")}

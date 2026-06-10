@@ -7,6 +7,7 @@ import type { SrsCard } from "@/lib/spacedRepetition";
 import { getWordsForLevel, wordIdFor } from "@/lib/data";
 import { todayISO } from "@/lib/spacedRepetition";
 import { cn } from "@/lib/utils";
+import { useReadWords } from "@/lib/useReadWords";
 
 /**
  * كرت المستوى — v2
@@ -28,21 +29,20 @@ export function LevelCard({
   const availableTotal = availableWords.length;
   const officialTotal = level.count;
 
-  // حساب التقدم
+  // ====== التقدم البسيط: كلمات مقروءة من localStorage ======
+  const { readCount, progressPct } = useReadWords(level.id, availableTotal);
+
+  // للـSRS: عدد المستحقات فقط (للـbadge)
   const today = todayISO();
-  let practiced = 0;
   let due = 0;
   for (const w of availableWords) {
     const id = wordIdFor(level.id, w);
     const card = cards[id];
-    if (card?.lastReviewed) practiced++;
     if (!card || card.nextReview <= today) due++;
   }
 
   const hasData = availableTotal > 0;
-  const progressPct =
-    hasData && practiced > 0 ? Math.round((practiced / availableTotal) * 100) : 0;
-  const notStarted = practiced === 0;
+  const notStarted = readCount === 0;
 
   const coveragePct =
     officialTotal > 0 ? (availableTotal / officialTotal) * 100 : 0;
@@ -168,8 +168,8 @@ export function LevelCard({
               {/* تفاصيل صغيرة تحت الشريط */}
               <div className="mt-1.5 flex items-center justify-between text-[10px] text-muted">
                 <span>
-                  {practiced > 0
-                    ? `${practiced} من ${availableTotal} كلمة`
+                  {readCount > 0
+                    ? `${readCount} من ${availableTotal} كلمة`
                     : `${availableTotal} كلمة جديدة`}
                 </span>
                 <span dir="ltr">
