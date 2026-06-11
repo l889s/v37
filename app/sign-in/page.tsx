@@ -59,7 +59,7 @@ function SignInForm() {
     setXLoading(true);
     const supabase = createClient();
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "twitter",
+      provider: "x",
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
     if (oauthError) {
