@@ -7,9 +7,6 @@ import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { createClient } from "@/lib/supabase/client";
 
-/**
- * النموذج الفعلي — منفصل لأن useSearchParams يتطلّب Suspense في Next.js 15.
- */
 function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -20,27 +17,24 @@ function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [xLoading, setXLoading] = useState(false);
   const [error, setError] = useState<string | null>(
     searchParams.get("error")
   );
 
   async function handleSubmit() {
     setError(null);
-
     if (!email.trim() || !password) {
       setError("الرجاء إدخال البريد الإلكتروني وكلمة المرور.");
       return;
     }
-
     setLoading(true);
     const { error: authError } = await signIn(email, password);
     setLoading(false);
-
     if (authError) {
       setError(authError);
       return;
     }
-
     const redirect = searchParams.get("redirect") || "/dashboard";
     router.push(redirect);
     router.refresh();
@@ -52,13 +46,25 @@ function SignInForm() {
     const supabase = createClient();
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
     if (oauthError) {
       setError("حدث خطأ أثناء تسجيل الدخول بـ Google. حاول مجدداً.");
       setGoogleLoading(false);
+    }
+  }
+
+  async function handleXSignIn() {
+    setError(null);
+    setXLoading(true);
+    const supabase = createClient();
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "twitter",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (oauthError) {
+      setError("حدث خطأ أثناء تسجيل الدخول بـ X. حاول مجدداً.");
+      setXLoading(false);
     }
   }
 
@@ -97,8 +103,8 @@ function SignInForm() {
         {/* زر Google */}
         <button
           onClick={handleGoogleSignIn}
-          disabled={googleLoading || loading}
-          className="mb-4 flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-white py-3 text-[14px] font-bold text-ink transition hover:bg-gray-50 disabled:opacity-60"
+          disabled={googleLoading || loading || xLoading}
+          className="mb-3 flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-white py-3 text-[14px] font-bold text-ink transition hover:bg-gray-50 disabled:opacity-60"
         >
           {googleLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -111,6 +117,22 @@ function SignInForm() {
             </svg>
           )}
           تسجيل الدخول بـ Google
+        </button>
+
+        {/* زر X */}
+        <button
+          onClick={handleXSignIn}
+          disabled={xLoading || loading || googleLoading}
+          className="mb-4 flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-black py-3 text-[14px] font-bold text-white transition hover:bg-gray-900 disabled:opacity-60"
+        >
+          {xLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+          )}
+          تسجيل الدخول بـ X
         </button>
 
         {/* فاصل */}
@@ -137,7 +159,7 @@ function SignInForm() {
               placeholder="you@example.com"
               autoComplete="email"
               className="w-full rounded-lg border border-line bg-white py-3 pr-10 pl-3 text-[14px] text-ink outline-none transition-colors focus:border-coral"
-              disabled={loading || googleLoading}
+              disabled={loading || googleLoading || xLoading}
             />
           </div>
         </label>
@@ -158,7 +180,7 @@ function SignInForm() {
               placeholder="••••••••"
               autoComplete="current-password"
               className="w-full rounded-lg border border-line bg-white py-3 pr-10 pl-10 text-[14px] text-ink outline-none transition-colors focus:border-coral"
-              disabled={loading || googleLoading}
+              disabled={loading || googleLoading || xLoading}
             />
             <button
               type="button"
@@ -185,7 +207,7 @@ function SignInForm() {
         {/* زر الدخول */}
         <button
           onClick={handleSubmit}
-          disabled={loading || googleLoading}
+          disabled={loading || googleLoading || xLoading}
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-coral py-3.5 text-[15px] font-extrabold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {loading ? (
