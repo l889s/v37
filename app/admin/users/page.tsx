@@ -39,10 +39,20 @@ export default function UsersPage() {
 
   async function updateSubscription(userId: string, status: string) {
     setUpdating(userId);
-    await supabase
+    const { data, error } = await supabase
       .from("profiles")
       .update({ subscription_status: status })
-      .eq("id", userId);
+      .eq("id", userId)
+      .select();
+
+    if (error) {
+      alert("خطأ في التحديث: " + error.message);
+      console.error("Update error:", error);
+    } else if (!data || data.length === 0) {
+      alert("لم يتم تحديث أي صف — على الأغلب صلاحيات RLS تمنع التعديل. راجع سياسات الأمان في Supabase.");
+      console.warn("No rows updated. Likely RLS blocking the update.");
+    }
+
     await fetchUsers();
     setUpdating(null);
   }
