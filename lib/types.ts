@@ -90,3 +90,55 @@ export type Word = {
   s: string;
   sa: string;
 };
+
+/* ============================================================
+   أنواع القواعد النحوية (语法)
+   ============================================================ */
+
+export type GrammarExample = {
+  zh: string;
+  pinyin?: string;
+  ar: string;
+};
+
+export type GrammarComparison = {
+  with: string;
+  note: string;
+};
+
+export type GrammarMistake = {
+  wrong: string;
+  right: string;
+  explanation: string;
+};
+
+export type GrammarRule = {
+  id: string;
+  /** التركيب/الصيغة بالصينية، يُعرض بخط CN كبير */
+  pattern: string;
+  pinyin: string;
+  /** الاسم العربي للقاعدة */
+  ar: string;
+  hsk: number;
+  /** الاستخدام التفصيلي */
+  usage: string;
+  examples: GrammarExample[];
+  /** الحقول الاحترافية (اختيارية — للبيانات الغنية) */
+  nickname?: string;
+  meaning?: string;
+  /** الصيغة المجردة، تُعرض في صندوق منقّط */
+  structure?: string;
+  structureExample?: string;
+  notes?: string[];
+  commonMistake?: GrammarMistake;
+  comparison?: GrammarComparison[];
+};
+
+export type GrammarLevel = {
+  level: number;
+  label: string;
+  cn: string;
+  desc: string;
+  count: number;
+  rules: GrammarRule[];
+};
