@@ -56,7 +56,7 @@ export function ClassifiersClient({ levels }: { levels: ClassifierLevel[] }) {
   }
 
   // قائمة مستويات الفلتر (1-6 + 7-9)
-  const filterLevels = [1, 2, 3, 4, 5, 6, 789];
+  const filterLevels = [HSK1, HSK2, HSK3, HSK4, HSK5, HSK6, HSK789];
 
   return (
     <div className="mx-auto max-w-2xl px-4 sm:px-5">
