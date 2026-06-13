@@ -94,7 +94,7 @@ export function GrammarClient({ levels }: { levels: GrammarLevel[] }) {
               onClick={() => setHskFilter(hskFilter === n ? null : n)}
               hskColor={n}
             >
-              {n === 789 ? "7-9" : n}
+              {n === 789 ? "HSK7-9" : `HSK${n}`}
             </FilterChip>
           ))}
         </div>
@@ -493,7 +493,7 @@ function FilterChip({
     return (
       <button
         onClick={onClick}
-        className="rounded-lg px-3 py-1.5 text-[11px] font-extrabold tabular-nums shadow-sm transition-all"
+        className="rounded-lg px-2.5 py-1.5 text-[10.5px] font-extrabold tabular-nums shadow-sm transition-all"
         style={{
           background: color.soft,
           color: textColor,
@@ -509,7 +509,7 @@ function FilterChip({
     <button
       onClick={onClick}
       className={cn(
-        "rounded-lg px-3 py-1.5 text-[11px] font-extrabold tabular-nums transition-all",
+        "rounded-lg px-2.5 py-1.5 text-[10.5px] font-extrabold tabular-nums transition-all",
         active
           ? "bg-ink text-white shadow-sm"
           : "bg-[#F7F7F7] text-muted hover:bg-[#EEEEEE]"
