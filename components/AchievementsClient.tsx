@@ -124,7 +124,7 @@ export function AchievementsClient() {
         {/* ===== 2. كرت "حان وقت المراجعة" — يظهر فقط لو فيه مستحقات ===== */}
         {dueCount > 0 && (
           <Link
-            href="/classifiers"
+            href="/practice"
             className="mb-8 flex items-center gap-3 overflow-hidden rounded-lg bg-gradient-to-l from-violet to-violet/85 p-4 text-white shadow-violet transition-shadow hover:shadow-cardHover"
           >
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/20 ring-1 ring-white/10">
@@ -158,10 +158,10 @@ export function AchievementsClient() {
         {/* ===== 4. نشاط الأسبوع (مخطط شريطي) ===== */}
         <WeeklyActivity history={srsState.stats.history ?? {}} />
 
-        {/* ===== الأزرار — مسافة mt-2 بعد الأقسام ===== */}
+        {/* ===== الأزرار ===== */}
         <section className="mb-4 mt-2 flex flex-col gap-2.5">
           <Link
-            href="/classifiers"
+            href="/practice"
             className="flex items-center justify-center gap-2 rounded-lg bg-ink py-3.5 text-[13px] font-bold text-white shadow-card hover:bg-black"
           >
             <Sparkles className="h-4 w-4" />
