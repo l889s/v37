@@ -5,6 +5,7 @@ import { ToastProvider } from "@/components/Toast";
 import { AuthProvider } from "@/hooks/useAuth";
 import { Header } from "@/components/Header";
 import { getNavItems } from "@/lib/data";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -59,7 +60,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#FFFFFF",
+  themeColor: "#FF4D4F",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -77,6 +78,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-white">
         <AuthProvider>
           <ToastProvider>
+            <ServiceWorkerRegister />
             <Header />
             {children}
             <BottomNav items={navItems} />
