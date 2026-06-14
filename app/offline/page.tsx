@@ -1,3 +1,5 @@
+"use client";
+
 export default function OfflinePage() {
   return (
     <main
@@ -10,8 +12,7 @@ export default function OfflinePage() {
         لا يوجد اتصال بالإنترنت
       </h1>
       <p className="text-[#666] text-base mb-8 max-w-xs leading-relaxed">
-        تحقق من اتصالك وحاول مجدداً. الصفحات التي زرتها سابقاً متاحة بدون
-        إنترنت.
+        تحقق من اتصالك وحاول مجدداً. الصفحات التي زرتها سابقاً متاحة بدون إنترنت.
       </p>
       <button
         onClick={() => window.location.reload()}
