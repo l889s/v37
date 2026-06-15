@@ -1,374 +1,15 @@
 import type { Metadata } from "next";
+import "./radicals.css";
 
 export const metadata: Metadata = {
   title: "جذور الحروف الصينية · الدفعة الأولى · HSK",
-  description: "خمسة جذور أساسية: 人 女 水 火 月 — لكل جذر قاعدة ذهبية وأمثلة مفكّكة واختبار سريع.",
+  description:
+    "خمسة جذور أساسية: 人 女 水 火 月 — لكل جذر قاعدة ذهبية وأمثلة مفكّكة واختبار سريع.",
 };
 
 export default function RadicalsPage() {
   return (
-    <>
-      <style>{`
-
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-:root{
-  --coral:#FF4D4F;
-  --coral-soft:#FFF0F0;
-  --ink:#111111;
-  --ink2:#3A3A3A;
-  --muted:#717171;
-  --line:#E8E8E8;
-  --bg:#FAFAF8;
-  --card:#FFFFFF;
-  --violet:#6B4EE6;
-  --violet-soft:#F0ECFE;
-  --mint:#0E9E82;
-  --mint-soft:#E8F7F4;
-  --gold:#C49320;
-  --gold-soft:#FBF4E0;
-  --radius:16px;
-  --radius-sm:10px;
-  --shadow:0 2px 12px rgba(0,0,0,.06);
-}
-body{
-  font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;
-  background:var(--bg);color:var(--ink);
-  line-height:1.8;
-  -webkit-font-smoothing:antialiased;
-  font-size:16px;
-}
-.zh,.big-zi,.form-zi,.zh-title,.vs-zi,.pill-zi{font-family:"Noto Sans SC",sans-serif}
-
-/* ── hero ── */
-header.hero{
-  position:relative;overflow:hidden;
-  background:#fff;
-  border-bottom:1px solid var(--line);
-  padding:40px 0 32px;
-}
-.hero-bgzi{
-  position:absolute;top:-30px;left:-6px;
-  font-family:"Noto Sans SC",sans-serif;
-  font-weight:900;font-size:240px;line-height:1;
-  color:var(--coral);opacity:.06;
-  pointer-events:none;user-select:none;
-}
-.wrap{max-width:780px;margin:0 auto;padding:0 16px}
-.hero-inner{position:relative}
-.hero-kicker{
-  font-weight:600;color:var(--coral);
-  font-size:.9rem;margin-bottom:12px;
-  display:flex;align-items:center;gap:7px;flex-wrap:wrap;
-}
-h1.hero-title{font-size:1.85rem;font-weight:700;letter-spacing:-.01em;margin-bottom:8px;line-height:1.3}
-.hero-sub{color:var(--muted);font-size:.97rem;max-width:46ch;line-height:1.7}
-.hero-badges{display:flex;gap:7px;margin-top:16px;flex-wrap:wrap}
-.hbadge{
-  background:var(--coral-soft);color:var(--coral);
-  font-weight:600;font-size:.85rem;
-  padding:5px 13px;border-radius:999px;
-  white-space:nowrap;
-}
-.hbadge.alt{background:var(--mint-soft);color:var(--mint)}
-.hbadge.alt2{background:var(--violet-soft);color:var(--violet)}
-
-/* ── sticky nav pills ── */
-nav.pills{
-  position:sticky;top:0;z-index:30;
-  background:rgba(250,250,248,.95);
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  border-bottom:1px solid var(--line);
-  padding:9px 0;
-}
-.pills-row{
-  display:flex;gap:7px;overflow-x:auto;
-  max-width:780px;margin:0 auto;padding:0 16px;
-  scrollbar-width:none;
-}
-.pills-row::-webkit-scrollbar{display:none}
-.pill{
-  display:flex;align-items:center;gap:6px;
-  flex:0 0 auto;text-decoration:none;
-  background:var(--card);border:1.5px solid var(--line);
-  border-radius:999px;padding:7px 14px;
-  transition:border-color .15s,transform .15s;
-}
-.pill:hover{border-color:var(--coral);transform:translateY(-1px)}
-.pill:active{transform:scale(.97)}
-.pill-zi{font-size:1.2rem;color:var(--coral);font-weight:700;line-height:1}
-.pill-mn{font-size:.85rem;font-weight:600;color:var(--ink2)}
-
-/* ── main ── */
-main{padding:22px 0 56px}
-
-/* ── card ── */
-.card{
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  padding:20px 18px;
-  margin-bottom:18px;
-  scroll-margin-top:66px;
-  box-shadow:var(--shadow);
-}
-.card-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}
-.big-zi{
-  font-weight:900;font-size:2.9rem;line-height:1;
-  color:#fff;background:var(--coral);
-  width:76px;height:76px;border-radius:14px;
-  display:flex;align-items:center;justify-content:center;
-  flex:0 0 auto;
-  box-shadow:0 4px 14px rgba(255,77,79,.3);
-}
-.head-meta{flex:1;min-width:0}
-.head-meta h2{font-size:1.3rem;font-weight:700;line-height:1.25;margin-bottom:4px}
-.head-meta .py{
-  font-family:"Noto Sans SC",sans-serif;
-  color:var(--muted);font-size:.97rem;display:inline;
-}
-.head-meta .liu{
-  display:inline-block;font-size:.78rem;font-weight:600;
-  color:var(--coral);background:var(--coral-soft);
-  padding:2px 9px;border-radius:999px;margin-top:5px;
-}
-
-/* ── sections ── */
-.sec,.exs,.expect,.forms{margin-top:16px}
-.t{
-  display:block;font-size:1rem;font-weight:700;
-  color:var(--ink);margin-bottom:8px;
-  padding-right:10px;border-right:3px solid var(--coral);
-}
-.sec p{font-size:.97rem;margin-bottom:6px;color:var(--ink2)}
-.keyidea{
-  background:var(--gold-soft);
-  border-right:3px solid var(--gold);
-  border-radius:var(--radius-sm);
-  padding:10px 13px;font-size:.95rem;
-  margin-top:10px;color:var(--ink2);
-}
-
-/* ── forms ── */
-.forms{
-  background:#F7F7F5;border:1px solid var(--line);
-  border-radius:var(--radius-sm);padding:13px 14px;
-}
-.forms>b{font-size:.92rem;display:block;margin-bottom:8px;color:var(--ink)}
-.form-row{display:flex;align-items:center;gap:11px;padding:6px 0}
-.form-row+.form-row{border-top:1px solid var(--line)}
-.form-zi{font-size:1.65rem;color:var(--coral);width:40px;text-align:center;flex:0 0 auto}
-.form-row span{font-size:.95rem;color:var(--muted)}
-
-/* ── examples ── */
-.exs .grp{
-  font-size:.9rem;font-weight:700;
-  margin:13px 0 5px;padding:8px 12px;
-  border-radius:var(--radius-sm);
-}
-.grp small{display:block;font-weight:400;font-size:.85rem;margin-top:2px;opacity:.75}
-.grp-sem{background:var(--mint-soft);color:var(--mint)}
-.grp-pho{background:var(--violet-soft);color:var(--violet)}
-
-.ex-line{padding:13px 0;border-bottom:1px solid var(--line)}
-.ex-line:last-child{border-bottom:0;padding-bottom:2px}
-.ex-line .zh{font-size:1.45rem;font-weight:700;color:var(--ink)}
-.ex-line .py{
-  font-family:"Noto Sans SC",sans-serif;
-  color:var(--coral);font-size:.92rem;margin:0 6px;
-}
-.ex-line .mn{font-weight:700;font-size:1rem;color:var(--ink)}
-.ex-note{
-  display:block;color:var(--ink2);
-  font-size:.95rem;line-height:1.8;margin-top:5px;
-}
-
-/* ── golden rule ── */
-.golden{
-  background:var(--gold-soft);
-  border:1px solid #E8D39A;
-  border-radius:var(--radius-sm);
-  padding:14px 15px;margin-top:8px;
-}
-.gh{display:block;font-weight:700;color:var(--gold);margin-bottom:9px;font-size:1rem}
-.gline{display:flex;align-items:baseline;gap:8px;font-size:.97rem;margin-bottom:7px;flex-wrap:wrap}
-.yes{
-  background:var(--mint-soft);color:var(--mint);
-  font-weight:700;padding:2px 9px;border-radius:6px;
-  white-space:nowrap;
-}
-.no{
-  background:var(--coral-soft);color:var(--coral);
-  font-weight:700;padding:2px 9px;border-radius:6px;
-  white-space:nowrap;
-}
-.gmemo{
-  background:#fff;border-radius:8px;
-  padding:9px 12px;font-size:.95rem;
-  margin-top:8px;border:1px dashed #E8D39A;
-  color:var(--ink2);
-}
-
-/* ── howto ── */
-.howto{
-  background:#F5F8FB;border:1px solid #DDE6EF;
-  border-radius:var(--radius-sm);padding:12px 14px;
-  margin-top:11px;font-size:.95rem;color:var(--ink2);
-}
-.ht{display:block;font-weight:700;margin-bottom:5px;color:var(--ink)}
-.rel{
-  display:inline-block;font-size:.8rem;font-weight:700;
-  padding:3px 11px;border-radius:999px;margin-top:8px;
-}
-.rel-high{background:var(--mint-soft);color:var(--mint)}
-.rel-mid{background:var(--gold-soft);color:var(--gold)}
-
-/* ── distinction boxes ── */
-.distinct{
-  background:#FFF5F5;border:1px solid #FACACA;
-  border-radius:var(--radius-sm);padding:14px 15px;margin-top:12px;
-}
-.dt{display:block;font-weight:700;color:var(--coral);margin-bottom:12px;font-size:.97rem}
-.vs-row{
-  display:flex;align-items:stretch;justify-content:center;gap:10px;
-}
-.vs-box{
-  flex:1;max-width:180px;background:#fff;
-  border:1.5px solid #F5CCCC;border-radius:var(--radius-sm);
-  padding:13px 10px;text-align:center;
-}
-.vs-zi{font-size:2.2rem;color:var(--coral);line-height:1}
-.vs-name{font-size:.85rem;font-weight:700;margin:6px 0 7px;color:var(--ink)}
-.vs-bars{display:flex;flex-direction:column;align-items:center;gap:6px;margin:6px 0}
-.vs-bars .bar{height:4px;background:var(--coral);border-radius:3px;width:40px;opacity:.7}
-.vs-bars .bar.short{width:24px}.vs-bars .bar.long{width:50px}
-.vs-desc{font-size:.87rem;color:var(--muted);margin-top:4px}
-.vs-sep{font-size:1.4rem;color:#C8A0A0;font-weight:700;flex:0 0 auto;align-self:center}
-.vs-left{font-size:.9rem;margin:.3rem 0;color:var(--ink2)}
-.trick{
-  background:#fff;border-radius:8px;
-  padding:9px 12px;font-size:.95rem;
-  margin-top:10px;border:1px dashed #FACACA;
-  color:var(--ink2);
-}
-
-/* ── test / quiz ── */
-.test{
-  background:var(--mint-soft);
-  border:1px solid #B8E2D8;
-  border-radius:var(--radius-sm);padding:14px 15px;margin-top:12px;
-}
-.tt{display:block;font-weight:700;color:var(--mint);margin-bottom:11px;font-size:.97rem}
-.tq{
-  background:#fff;border:1px solid #CCE8E2;
-  border-radius:var(--radius-sm);padding:12px 13px;
-  margin-bottom:9px;font-size:.95rem;color:var(--ink2);
-}
-.tq:last-child{margin-bottom:0}
-.lvl{
-  display:inline-block;font-size:.78rem;font-weight:700;
-  padding:3px 10px;border-radius:999px;
-  background:var(--mint-soft);color:var(--mint);
-  margin-left:6px;vertical-align:middle;
-}
-.lvl.mid{background:var(--gold-soft);color:var(--gold)}
-.lvl.hard{background:var(--coral-soft);color:var(--coral)}
-.qz{font-size:1.25rem;font-weight:700;color:var(--ink);margin:0 5px;vertical-align:middle}
-.py{font-family:"Noto Sans SC",sans-serif}
-.ans{
-  display:block;color:#444;font-size:.93rem;
-  margin-top:8px;padding-top:8px;
-  border-top:1px dashed #CCE8E2;
-  line-height:1.7;
-}
-
-/* ── expert / errors ── */
-.expert{margin-top:16px}
-.err{
-  border-right:3px solid var(--coral);
-  border-radius:var(--radius-sm);
-  padding:11px 13px;margin-bottom:9px;
-  font-size:.95rem;color:var(--ink2);
-  background:#FAFAFA;
-  border-left:none;border-top:none;border-bottom:none;
-  border:1px solid var(--line);border-right:3px solid var(--coral);
-}
-.eh{font-weight:700;color:var(--coral);display:block;margin-bottom:3px}
-.fix{font-weight:700;color:var(--mint)}
-
-/* ── cultural window ── */
-.cult{
-  background:var(--violet-soft);
-  border:1px solid #C8B8F6;
-  border-radius:var(--radius-sm);
-  padding:14px 15px;margin-top:14px;
-}
-.cult>b{display:block;font-weight:700;color:var(--violet);margin-bottom:7px;font-size:.97rem}
-.cult p{font-size:.95rem;line-height:1.85;color:var(--ink2)}
-
-/* ── sound pill (if exists) ── */
-.sound-pill{
-  display:inline-block;background:var(--mint-soft);color:var(--mint);
-  font-family:"Noto Sans SC",sans-serif;font-size:.88rem;font-weight:600;
-  padding:3px 10px;border-radius:6px;margin:2px 3px;
-}
-
-/* ── footer ── */
-footer{
-  border-top:1px solid var(--line);padding:28px 0 44px;
-  text-align:center;color:var(--muted);font-size:.9rem;
-}
-footer .zh-title{color:var(--coral);font-weight:700;font-size:1rem;letter-spacing:.08em;display:block;margin-bottom:6px}
-footer a{color:var(--coral);text-decoration:none;font-weight:600}
-
-/* ── accessibility ── */
-a:focus-visible,.pill:focus-visible{outline:2px solid var(--coral);outline-offset:2px}
-
-/* ── MOBILE: ≤ 520px ── */
-@media (max-width:520px){
-  header.hero{padding:30px 0 26px}
-  h1.hero-title{font-size:1.55rem}
-  .hero-bgzi{font-size:170px;top:-20px}
-  .hero-sub{font-size:.93rem}
-  .hbadge{font-size:.82rem}
-
-  .pill{padding:6px 11px}
-  .pill-zi{font-size:1.1rem}
-  .pill-mn{font-size:.82rem}
-
-  .card{padding:16px 14px;border-radius:14px}
-  .card-head{gap:12px}
-  .big-zi{width:66px;height:66px;font-size:2.5rem;border-radius:12px}
-  .head-meta h2{font-size:1.18rem}
-
-  .t{font-size:.97rem}
-  .sec p,.keyidea,.ex-note,.gline,.howto,.cult p,.err,.trick,.gmemo,.tq,.ans{font-size:.93rem}
-  .ex-line .zh{font-size:1.35rem}
-  .ex-line .mn{font-size:.97rem}
-  .qz{font-size:1.15rem}
-  .lvl{font-size:.76rem;padding:2px 8px}
-
-  /* vs-row: stack on very small screens */
-  .vs-row{gap:7px}
-  .vs-box{padding:11px 8px}
-  .vs-zi{font-size:1.9rem}
-  .vs-desc{font-size:.82rem}
-  .vs-name{font-size:.82rem}
-
-  .golden,.distinct,.test,.cult,.howto{padding:12px 12px}
-}
-
-/* ── TABLET: 521–780px ── */
-@media (min-width:521px) and (max-width:780px){
-  h1.hero-title{font-size:1.8rem}
-  .card{padding:20px 18px}
-}
-
-@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto;transition:none}}
-
-      `}</style>
-
-      {/* hero */}
+    <div className="radicals-page">
       <header className="hero">
         <div className="hero-bgzi">部</div>
         <div className="wrap hero-inner">
@@ -377,7 +18,8 @@ a:focus-visible,.pill:focus-visible{outline:2px solid var(--coral);outline-offse
           </div>
           <h1 className="hero-title">جذور الحروف — الدفعة الأولى</h1>
           <p className="hero-sub">
-            خمسة جذور تُبنى عليها آلاف الكلمات. لكل جذر: قاعدة ذهبية، أمثلة مفكّكة، اختبار سريع، وتمييز بصري للحروف المتشابهة.
+            خمسة جذور تُبنى عليها آلاف الكلمات. لكل جذر: قاعدة ذهبية، أمثلة
+            مفكّكة، اختبار سريع، وتمييز بصري للحروف المتشابهة.
           </p>
           <div className="hero-badges">
             <span className="hbadge">٥ جذور أساسية</span>
@@ -387,18 +29,31 @@ a:focus-visible,.pill:focus-visible{outline:2px solid var(--coral);outline-offse
         </div>
       </header>
 
-      {/* sticky nav */}
       <nav className="pills">
         <div className="pills-row">
-          <a className="pill" href="#r-ren"><span className="pill-zi">人</span><span className="pill-mn">إنسان</span></a>
-          <a className="pill" href="#r-nv"><span className="pill-zi">女</span><span className="pill-mn">امرأة</span></a>
-          <a className="pill" href="#r-shui"><span className="pill-zi">水</span><span className="pill-mn">ماء</span></a>
-          <a className="pill" href="#r-huo"><span className="pill-zi">火</span><span className="pill-mn">نار</span></a>
-          <a className="pill" href="#r-yue"><span className="pill-zi">月</span><span className="pill-mn">قمر</span></a>
+          <a className="pill" href="#r-ren">
+            <span className="pill-zi">人</span>
+            <span className="pill-mn">إنسان</span>
+          </a>
+          <a className="pill" href="#r-nv">
+            <span className="pill-zi">女</span>
+            <span className="pill-mn">امرأة</span>
+          </a>
+          <a className="pill" href="#r-shui">
+            <span className="pill-zi">水</span>
+            <span className="pill-mn">ماء</span>
+          </a>
+          <a className="pill" href="#r-huo">
+            <span className="pill-zi">火</span>
+            <span className="pill-mn">نار</span>
+          </a>
+          <a className="pill" href="#r-yue">
+            <span className="pill-zi">月</span>
+            <span className="pill-mn">قمر</span>
+          </a>
         </div>
       </nav>
 
-      {/* cards */}
       <main className="wrap">
 <div className="card" id="r-ren">
 <div className="card-head">
@@ -477,9 +132,6 @@ a:focus-visible,.pill:focus-visible{outline:2px solid var(--coral);outline-offse
 <div className="cult"><b>🏛️ نافذة ثقافية</b>
 <p>الحرف 人 رمزٌ للإنسانية في الفكر الصيني. والكلمة 人们 (rénmen) = «الناس». والمثل 三人行，必有我师 لكونفوشيوس: «إن سار ثلاثةٌ معاً، فلا بدّ أن أحدهم معلّمي» — أي تعلّم من كل من حولك.</p></div>
 </div>
-
-
-<!-- ================= 女 ================= -->
 <div className="card" id="r-nv">
 <div className="card-head">
 <div className="big-zi">女</div>
@@ -560,9 +212,6 @@ a:focus-visible,.pill:focus-visible{outline:2px solid var(--coral);outline-offse
 <div className="cult"><b>🏛️ نافذة ثقافية</b>
 <p>الحرف 好 (hǎo = جيّد) يجمع المرأة 女 وطفلها 子 — فاجتماعهما رمزٌ للخير والبركة. وكلمة 妈妈 (māma = ماما) من أوائل ما ينطقه الطفل الصيني، كما في معظم لغات العالم.</p></div>
 </div>
-
-
-<!-- ================= 水 ================= -->
 <div className="card" id="r-shui">
 <div className="card-head">
 <div className="big-zi">水</div>
@@ -640,9 +289,6 @@ a:focus-visible,.pill:focus-visible{outline:2px solid var(--coral);outline-offse
 <div className="cult"><b>🏛️ نافذة ثقافية</b>
 <p>الماء رمز الحكمة والمرونة في الفلسفة الصينية. يقول لاوتزه: 上善若水 («أعلى الخير كالماء») — لأن الماء ينفع كل شيء دون منازعة، ويتغلّب على الصلب باللين. والماء أحد العناصر الخمسة (五行).</p></div>
 </div>
-
-
-<!-- ================= 火 ================= -->
 <div className="card" id="r-huo">
 <div className="card-head">
 <div className="big-zi">火</div>
@@ -724,9 +370,6 @@ a:focus-visible,.pill:focus-visible{outline:2px solid var(--coral);outline-offse
 <div className="cult"><b>🏛️ نافذة ثقافية</b>
 <p>النار رمز الحماس والازدهار. التعبير 红火 (hónghuo = «أحمر ناري») يصف الحياة المزدهرة المليئة بالحيوية. وعبارة 火锅 (huǒguō = «قِدر النار») هي الهوت بوت الشهير — وجبة جماعية تُطهى على نارٍ وسط المائدة.</p></div>
 </div>
-
-
-<!-- ================= 月 ================= -->
 <div className="card" id="r-yue">
 <div className="card-head">
 <div className="big-zi">月</div>
@@ -814,14 +457,13 @@ a:focus-visible,.pill:focus-visible{outline:2px solid var(--coral);outline-offse
 
       </main>
 
-      {/* footer */}
-      <footer className="wrap">
+      <footer className="wrap rad-footer">
         <span className="zh-title">汉字部首</span>
         <p>
           الدفعة الأولى من قاموس جذور الحروف الصينية ·{" "}
           <a href="https://hsk-ar.com">hsk-ar.com</a>
         </p>
       </footer>
-    </>
+    </div>
   );
 }
