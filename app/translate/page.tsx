@@ -2,9 +2,9 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 
-// ── مترجم فوري عربي ⇄ صيني ⇄ إنجليزي ──────────────────────────
-// صفحة hsk-ar.com/translate
-// المراحل: التعرّف على الصوت (المتصفّح) → الترجمة (عبر /api/translate الآمن) → النطق
+// ── المترجم ──────────────────────────
+// صفحة الترجمة
+
 
 const LANGS = {
   ar: { code: "ar-SA", label: "العربية", flag: "🇸🇦", ttsLang: "ar", name: "Arabic" },
@@ -45,7 +45,7 @@ export default function App() {
     typeof window !== "undefined" &&
     (window.SpeechRecognition || window.webkitSpeechRecognition);
 
-  // ── الترجمة عبر Claude ──────────────────────────────────
+  // ── الترجمة ──────────────────────────────────
   const translate = useCallback(
     async (text) => {
       if (!text.trim()) return;
@@ -66,6 +66,7 @@ export default function App() {
         if (!res.ok) throw new Error("request failed");
         const parsed = await res.json();
 
+        setHeard(text);
         setTranslation(parsed.translation || "");
         setPinyin(parsed.pinyin || "");
         setStatus("done");
@@ -82,7 +83,7 @@ export default function App() {
             ...h,
           ].slice(0, 8)
         );
-        speak(parsed.translation || "", target);
+        // لا نطق تلقائي — الطالب يضغط زر الاستماع وقت ما يبي
       } catch (e) {
         setStatus("error");
         setErrorMsg("تعذّرت الترجمة. تأكّد من الاتصال وحاول مرة ثانية.");
@@ -150,7 +151,7 @@ export default function App() {
             ...h,
           ].slice(0, 8)
         );
-        speak(parsed.translation || "", target);
+        // لا نطق تلقائي — الطالب يضغط زر الاستماع وقت ما يبي
       } catch (e) {
         setStatus("error");
         setErrorMsg("تعذّرت قراءة الصورة. حاول مرة ثانية.");
@@ -276,11 +277,12 @@ export default function App() {
       <style>{globalCSS}</style>
 
       <header style={S.header}>
-        <div style={S.brandMark}>译</div>
-        <div>
-          <h1 style={S.title}>مترجم فوري</h1>
-          <p style={S.subtitle}>عربي · صيني · إنجليزي · نموذج أولي</p>
-        </div>
+        <div style={S.bigChar}>译</div>
+        <div style={S.eyebrow}>翻译 · الترجمة الفورية</div>
+        <h1 style={S.title}>المترجم</h1>
+        <p style={S.subtitle}>
+          ترجمة فورية بين العربية والصينية والإنجليزية — صوت، كاميرا، وكتابة
+        </p>
       </header>
 
       {/* محوّل اللغة (ثلاث لغات) */}
@@ -438,14 +440,46 @@ export default function App() {
         <div style={S.panelLabel}>
           {LANGS[target].flag} الترجمة
         </div>
-        <div style={{ ...S.transText, opacity: translation ? 1 : 0.4 }}>
-          {translation || "النتيجة تظهر هنا…"}
-        </div>
-        {pinyin && <div style={S.pinyin}>{pinyin}</div>}
-        {translation && (
-          <button onClick={() => speak(translation, target)} style={S.replay}>
-            ▶ إعادة النطق
-          </button>
+
+        {translation ? (
+          <>
+            {/* النص الأصلي (في وضع الكتابة فقط، لأن الصوت/الكاميرا يعرضونه فوق) */}
+            {heard && mode === "text" && (
+              <div style={S.origText} dir={source === "en" ? "ltr" : "rtl"}>
+                {heard}
+              </div>
+            )}
+
+            {/* الترجمة */}
+            <div style={S.transText} dir={target === "en" ? "ltr" : "rtl"}>
+              {translation}
+            </div>
+            {pinyin && <div style={S.pinyin}>{pinyin}</div>}
+
+            {/* علامتا الاستماع */}
+            <div style={S.listenRow}>
+              {heard && (
+                <button
+                  onClick={() => speak(heard, source)}
+                  style={S.listenChip}
+                  aria-label={`استماع ${LANGS[source].label}`}
+                >
+                  <span style={S.chipLang}>{LANGS[source].label}</span>
+                  <span style={S.chipIcon}>🔊</span>
+                </button>
+              )}
+              <button
+                onClick={() => speak(translation, target)}
+                style={S.listenChip}
+                aria-label={`استماع ${LANGS[target].label}`}
+              >
+                <span style={S.chipLang}>{LANGS[target].label}</span>
+                <span style={S.chipIcon}>🔊</span>
+              </button>
+            </div>
+          </>
+        ) : (
+          <div style={{ ...S.transText, opacity: 0.4 }}>النتيجة تظهر هنا…</div>
         )}
       </div>
 
@@ -482,47 +516,80 @@ export default function App() {
         </div>
       )}
 
-      <footer style={S.footer}>
-        STT المتصفّح · ترجمة Claude · نطق SpeechSynthesis
-      </footer>
+      {/* شريط التنقّل السفلي — مطابق للموقع */}
+      <nav style={S.bottomNav}>
+        <a href="/" style={S.navItem}>
+          <span style={S.navIcon}>⌂</span>
+          <span style={S.navLabel}>الرئيسية</span>
+        </a>
+        <a href="/hsk-levels" style={S.navItem}>
+          <span style={S.navIcon}>水</span>
+          <span style={S.navLabel}>المستويات</span>
+        </a>
+        <a href="/classifiers" style={S.navItem}>
+          <span style={S.navIcon}>量</span>
+          <span style={S.navLabel}>كلمات الكمية</span>
+        </a>
+        <a href="/grammar" style={S.navItem}>
+          <span style={S.navIcon}>语</span>
+          <span style={S.navLabel}>القواعد</span>
+        </a>
+        <a href="/translate" style={{ ...S.navItem, ...S.navActive }}>
+          <span style={S.navIcon}>译</span>
+          <span style={S.navLabel}>المترجم</span>
+        </a>
+      </nav>
     </div>
   );
 }
 
-// ── الأنماط ──────────────────────────────────
-const ink = "#0E1B2A";
-const jade = "#1F8A70";
-const jadeLight = "#E8F4F0";
-const sand = "#F6F3EC";
-const gold = "#C9A24B";
+// ── الأنماط — مطابقة لهوية hsk-ar.com ──────────────────────
+const red = "#FF4D4F";        // اللون الأساسي للموقع
+const redSoft = "#FFF1F1";    // خلفية حمراء فاتحة
+const redDeep = "#D9363E";    // أحمر غامق للتأكيد
+const ink = "#1A1A2E";        // نص أساسي
+const muted = "#8A8AA0";      // نص ثانوي
+const bg = "#FBF7F4";         // خلفية الصفحة الدافئة
+const card = "#FFFFFF";       // البطاقات
+const line = "#EFE7E2";       // الحدود الناعمة
 
 const S = {
   page: {
-    maxWidth: 480,
+    maxWidth: 500,
     margin: "0 auto",
     minHeight: "100vh",
-    background: sand,
-    padding: "20px 18px 40px",
-    fontFamily:
-      "'Cairo', 'Segoe UI', system-ui, sans-serif",
+    background: bg,
+    padding: "26px 18px 110px", // مساحة سفلية لشريط التنقّل
+    fontFamily: "'Cairo', 'Segoe UI', system-ui, sans-serif",
     color: ink,
     boxSizing: "border-box",
   },
-  header: { display: "flex", alignItems: "center", gap: 14, marginBottom: 22 },
-  brandMark: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    background: ink,
-    color: gold,
-    display: "grid",
-    placeItems: "center",
-    fontSize: 30,
+
+  header: { textAlign: "center", marginBottom: 24 },
+  bigChar: {
+    fontSize: 60,
     fontWeight: 700,
-    boxShadow: "0 6px 18px rgba(14,27,42,0.22)",
+    color: red,
+    lineHeight: 1,
+    marginBottom: 10,
+    fontFamily: "'Noto Serif SC', serif",
   },
-  title: { margin: 0, fontSize: 26, fontWeight: 800, letterSpacing: "-0.5px" },
-  subtitle: { margin: "2px 0 0", fontSize: 13, color: "#6B7785", fontWeight: 600 },
+  eyebrow: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: red,
+    marginBottom: 8,
+    letterSpacing: "0.2px",
+  },
+  title: { margin: 0, fontSize: 30, fontWeight: 800, color: ink, letterSpacing: "-0.5px" },
+  subtitle: {
+    margin: "8px auto 0",
+    fontSize: 14,
+    color: muted,
+    fontWeight: 600,
+    maxWidth: 360,
+    lineHeight: 1.7,
+  },
 
   langBar: {
     display: "flex",
@@ -536,7 +603,7 @@ const S = {
     display: "block",
     fontSize: 11,
     fontWeight: 700,
-    color: "#8A94A0",
+    color: muted,
     marginBottom: 5,
     paddingInlineStart: 4,
   },
@@ -547,10 +614,10 @@ const S = {
     padding: "10px 12px",
     background: "#fff",
     borderRadius: 14,
-    border: "1.5px solid #E4DECF",
+    border: `1.5px solid ${line}`,
   },
-  selectSource: { borderColor: ink },
-  selectTarget: { borderColor: jade },
+  selectSource: { borderColor: "#D8D0CB" },
+  selectTarget: { borderColor: red },
   select: {
     flex: 1,
     border: "none",
@@ -569,7 +636,7 @@ const S = {
   modeBar: {
     display: "flex",
     gap: 8,
-    background: "#EDE7D8",
+    background: "#F2EAE5",
     padding: 5,
     borderRadius: 14,
     marginBottom: 16,
@@ -582,15 +649,15 @@ const S = {
     background: "transparent",
     fontSize: 15,
     fontWeight: 700,
-    color: "#7A8290",
+    color: muted,
     cursor: "pointer",
     fontFamily: "inherit",
     transition: "background .15s, color .15s",
   },
   modeActive: {
     background: "#fff",
-    color: ink,
-    boxShadow: "0 2px 6px rgba(14,27,42,0.1)",
+    color: red,
+    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
   },
   imgPreview: {
     width: "100%",
@@ -604,9 +671,9 @@ const S = {
     width: "100%",
     padding: "18px 0",
     borderRadius: 16,
-    border: `2px dashed ${jade}`,
-    background: jadeLight,
-    color: jade,
+    border: `2px dashed ${red}`,
+    background: redSoft,
+    color: red,
     fontSize: 17,
     fontWeight: 800,
     cursor: "pointer",
@@ -619,7 +686,7 @@ const S = {
     boxSizing: "border-box",
     padding: "14px 16px",
     borderRadius: 16,
-    border: "1.5px solid #E4DECF",
+    border: `1.5px solid ${line}`,
     background: "#fff",
     fontSize: 18,
     fontWeight: 600,
@@ -635,25 +702,26 @@ const S = {
     padding: "14px 0",
     borderRadius: 14,
     border: "none",
-    background: ink,
+    background: red,
     color: "#fff",
     fontSize: 17,
     fontWeight: 800,
     cursor: "pointer",
     fontFamily: "inherit",
+    boxShadow: "0 4px 14px rgba(255,77,79,0.3)",
   },
-  btnDisabled: { opacity: 0.45, cursor: "not-allowed" },
+  btnDisabled: { opacity: 0.45, cursor: "not-allowed", boxShadow: "none" },
   swapBtn: {
     width: 44,
     height: 44,
     borderRadius: 12,
     border: "none",
-    background: jade,
+    background: red,
     color: "#fff",
     fontSize: 20,
     cursor: "pointer",
     flexShrink: 0,
-    boxShadow: "0 4px 12px rgba(31,138,112,0.3)",
+    boxShadow: "0 4px 12px rgba(255,77,79,0.3)",
   },
 
   panel: {
@@ -662,58 +730,79 @@ const S = {
     padding: "16px 18px",
     marginBottom: 14,
     minHeight: 64,
-    border: "1px solid #ECE6D8",
+    border: `1px solid ${line}`,
   },
-  panelTarget: { background: jadeLight, borderColor: "#CDE7DF" },
+  panelTarget: { background: redSoft, borderColor: "#FBD9DA" },
   panelLabel: {
     fontSize: 12,
     fontWeight: 700,
-    color: "#8A94A0",
+    color: muted,
     marginBottom: 8,
   },
   heardText: { fontSize: 20, fontWeight: 600, lineHeight: 1.5, minHeight: 28 },
-  transText: { fontSize: 22, fontWeight: 700, lineHeight: 1.5, color: ink },
-  pinyin: { fontSize: 15, color: jade, marginTop: 6, fontWeight: 600, direction: "ltr", textAlign: "right" },
-  replay: {
-    marginTop: 12,
+
+  origText: {
+    fontSize: 19,
+    fontWeight: 700,
+    lineHeight: 1.5,
+    color: "#5B5B6B",
+    paddingBottom: 12,
+    marginBottom: 12,
+    borderBottom: `1px dashed #F0CFCF`,
+  },
+  transText: { fontSize: 23, fontWeight: 800, lineHeight: 1.5, color: ink },
+  pinyin: { fontSize: 15, color: red, marginTop: 6, fontWeight: 600, direction: "ltr", textAlign: "right" },
+
+  listenRow: {
+    display: "flex",
+    gap: 10,
+    marginTop: 14,
+    flexWrap: "wrap",
+  },
+  listenChip: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 7,
     background: "#fff",
-    border: `1.5px solid ${jade}`,
-    color: jade,
-    borderRadius: 10,
-    padding: "6px 14px",
+    border: `1.5px solid ${red}`,
+    color: red,
+    borderRadius: 999,
+    padding: "7px 14px",
     fontSize: 14,
     fontWeight: 700,
     cursor: "pointer",
     fontFamily: "inherit",
   },
+  chipLang: { fontWeight: 800 },
+  chipIcon: { fontSize: 15, lineHeight: 1 },
 
   micWrap: { textAlign: "center", margin: "10px 0 18px" },
   mic: {
     position: "relative",
-    width: 84,
-    height: 84,
+    width: 88,
+    height: 88,
     borderRadius: "50%",
     border: "none",
-    background: ink,
+    background: red,
     color: "#fff",
-    fontSize: 32,
+    fontSize: 34,
     cursor: "pointer",
-    boxShadow: "0 8px 24px rgba(14,27,42,0.3)",
+    boxShadow: "0 10px 28px rgba(255,77,79,0.35)",
     transition: "transform .15s",
   },
-  micActive: { background: "#C0392B", transform: "scale(1.05)" },
+  micActive: { background: redDeep, transform: "scale(1.05)" },
   pulse: {
     position: "absolute",
     inset: -6,
     borderRadius: "50%",
-    border: "3px solid rgba(192,57,43,0.4)",
+    border: "3px solid rgba(255,77,79,0.4)",
     animation: "ping 1.2s ease-out infinite",
   },
   statusText: {
     marginTop: 12,
     fontSize: 15,
     fontWeight: 700,
-    color: "#56616E",
+    color: muted,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -722,21 +811,22 @@ const S = {
   spinner: {
     width: 14,
     height: 14,
-    border: "2px solid #CBD3DC",
-    borderTopColor: jade,
+    border: "2px solid #F0DADA",
+    borderTopColor: red,
     borderRadius: "50%",
     display: "inline-block",
     animation: "spin .7s linear infinite",
   },
 
   error: {
-    background: "#FDECEA",
-    color: "#C0392B",
+    background: redSoft,
+    color: redDeep,
     padding: "12px 16px",
     borderRadius: 12,
     fontSize: 14,
-    fontWeight: 600,
+    fontWeight: 700,
     marginBottom: 14,
+    border: "1px solid #FBD9DA",
   },
   warn: {
     background: "#FFF7E6",
@@ -753,7 +843,7 @@ const S = {
   historyTitle: {
     fontSize: 13,
     fontWeight: 800,
-    color: "#8A94A0",
+    color: muted,
     marginBottom: 10,
   },
   histItem: {
@@ -764,17 +854,17 @@ const S = {
     borderRadius: 12,
     padding: "10px 12px",
     marginBottom: 8,
-    border: "1px solid #ECE6D8",
+    border: `1px solid ${line}`,
   },
   histFrom: { fontSize: 18, flexShrink: 0 },
   histBody: { flex: 1, minWidth: 0 },
-  histSrc: { fontSize: 14, color: "#6B7785", fontWeight: 600 },
+  histSrc: { fontSize: 14, color: muted, fontWeight: 600 },
   histOut: { fontSize: 16, fontWeight: 700, marginTop: 2 },
-  histPy: { fontSize: 12, color: jade, marginTop: 2, direction: "ltr", textAlign: "right" },
+  histPy: { fontSize: 12, color: red, marginTop: 2, direction: "ltr", textAlign: "right" },
   histPlay: {
-    background: jadeLight,
+    background: redSoft,
     border: "none",
-    color: jade,
+    color: red,
     width: 30,
     height: 30,
     borderRadius: 8,
@@ -783,20 +873,55 @@ const S = {
     flexShrink: 0,
   },
 
-  footer: {
-    marginTop: 24,
+  credit: {
+    marginTop: 22,
     textAlign: "center",
     fontSize: 11,
-    color: "#A3ABB5",
+    color: "#B7AEA8",
     fontWeight: 600,
+    lineHeight: 1.7,
   },
+
+  // شريط التنقّل السفلي الثابت
+  bottomNav: {
+    position: "fixed",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    maxWidth: 500,
+    margin: "0 auto",
+    background: "rgba(255,255,255,0.96)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    borderTop: `1px solid ${line}`,
+    display: "flex",
+    justifyContent: "space-around",
+    alignItems: "center",
+    padding: "8px 4px",
+    paddingBottom: "max(8px, env(safe-area-inset-bottom))",
+    zIndex: 50,
+  },
+  navItem: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 3,
+    textDecoration: "none",
+    color: muted,
+    flex: 1,
+    padding: "4px 0",
+  },
+  navActive: { color: red },
+  navIcon: { fontSize: 20, fontWeight: 700, lineHeight: 1 },
+  navLabel: { fontSize: 11, fontWeight: 700 },
 };
 
 const globalCSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Noto+Serif+SC:wght@600;700&display=swap');
   * { -webkit-tap-highlight-color: transparent; }
   @keyframes ping { 0%{transform:scale(1);opacity:.8} 100%{transform:scale(1.5);opacity:0} }
   @keyframes spin { to { transform: rotate(360deg) } }
-  button:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid ${gold}; outline-offset: 2px; }
+  a:active { opacity: .7; }
+  button:focus-visible, textarea:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid ${red}; outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important } }
 `;
