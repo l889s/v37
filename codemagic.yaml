@@ -23,7 +23,7 @@ workflows:
           xcode-project build-ipa \
             --project "ios/App/App.xcodeproj" \
             --scheme "App" \
-            --archive-xcargs "CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM"
+            --archive-xcargs "DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM -allowProvisioningUpdates"
     artifacts:
       - build/ios/ipa/*.ipa
     publishing:
