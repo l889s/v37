@@ -26,7 +26,8 @@ workflows:
           xcode-project build-ipa \
             --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME" \
-            --archive-xcargs "CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER='HSK Arabia App Store' CODE_SIGN_IDENTITY='Apple Distribution' DEVELOPMENT_TEAM=9Z33JBXVCA"
+            --archive-xcargs "CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER='HSK Arabia App Store' CODE_SIGN_IDENTITY='Apple Distribution' DEVELOPMENT_TEAM=9Z33JBXVCA" \
+            --verbose
     artifacts:
       - ios/App/build/ios/ipa/*.ipa
       - build/ios/ipa/*.ipa
