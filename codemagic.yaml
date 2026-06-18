@@ -19,7 +19,7 @@ workflows:
         script: |
           keychain initialize
           keychain add-certificates
-          xcode-project use-profiles
+          xcode-project use-profiles --project "ios/App/App.xcodeproj"
       - name: Build iOS
         script: |
           cd ios/App
