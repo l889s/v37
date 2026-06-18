@@ -18,6 +18,7 @@ function SignInForm() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [xLoading, setXLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const [error, setError] = useState<string | null>(
     searchParams.get("error")
   );
@@ -68,6 +69,22 @@ function SignInForm() {
     }
   }
 
+  async function handleAppleSignIn() {
+    setError(null);
+    setAppleLoading(true);
+    const supabase = createClient();
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "apple",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (oauthError) {
+      setError("حدث خطأ أثناء تسجيل الدخول بـ Apple. حاول مجدداً.");
+      setAppleLoading(false);
+    }
+  }
+
+  const anyLoading = loading || googleLoading || xLoading || appleLoading;
+
   return (
     <div className="w-full max-w-sm">
       {/* الشعار */}
@@ -103,7 +120,7 @@ function SignInForm() {
         {/* زر Google */}
         <button
           onClick={handleGoogleSignIn}
-          disabled={googleLoading || loading || xLoading}
+          disabled={anyLoading}
           className="mb-3 flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-white py-3 text-[14px] font-bold text-ink transition hover:bg-gray-50 disabled:opacity-60"
         >
           {googleLoading ? (
@@ -122,8 +139,8 @@ function SignInForm() {
         {/* زر X */}
         <button
           onClick={handleXSignIn}
-          disabled={xLoading || loading || googleLoading}
-          className="mb-4 flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-black py-3 text-[14px] font-bold text-white transition hover:bg-gray-900 disabled:opacity-60"
+          disabled={anyLoading}
+          className="mb-3 flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-black py-3 text-[14px] font-bold text-white transition hover:bg-gray-900 disabled:opacity-60"
         >
           {xLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -133,6 +150,23 @@ function SignInForm() {
             </svg>
           )}
           تسجيل الدخول بـ X
+        </button>
+
+        {/* زر Apple */}
+        <button
+          onClick={handleAppleSignIn}
+          disabled={anyLoading}
+          className="mb-4 flex w-full items-center justify-center gap-2 rounded-lg bg-black py-3 text-[14px] font-bold text-white transition hover:bg-gray-900 disabled:opacity-60"
+          style={{ border: "1px solid #000" }}
+        >
+          {appleLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+            </svg>
+          )}
+          تسجيل الدخول بـ Apple
         </button>
 
         {/* فاصل */}
@@ -159,7 +193,7 @@ function SignInForm() {
               placeholder="you@example.com"
               autoComplete="email"
               className="w-full rounded-lg border border-line bg-white py-3 pr-10 pl-3 text-[14px] text-ink outline-none transition-colors focus:border-coral"
-              disabled={loading || googleLoading || xLoading}
+              disabled={anyLoading}
             />
           </div>
         </label>
@@ -180,7 +214,7 @@ function SignInForm() {
               placeholder="••••••••"
               autoComplete="current-password"
               className="w-full rounded-lg border border-line bg-white py-3 pr-10 pl-10 text-[14px] text-ink outline-none transition-colors focus:border-coral"
-              disabled={loading || googleLoading || xLoading}
+              disabled={anyLoading}
             />
             <button
               type="button"
@@ -207,7 +241,7 @@ function SignInForm() {
         {/* زر الدخول */}
         <button
           onClick={handleSubmit}
-          disabled={loading || googleLoading || xLoading}
+          disabled={anyLoading}
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-coral py-3.5 text-[15px] font-extrabold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {loading ? (
