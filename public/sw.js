@@ -1,12 +1,20 @@
 // HSK بالعربي — Service Worker
-// النسخة: 1.0.0
+// النسخة: 1.1.0
 
-const CACHE_NAME = "hsk-ar-v1";
+const CACHE_NAME = "hsk-ar-v2";
 
 // الملفات الأساسية التي تُخزَّن عند التثبيت
 const STATIC_ASSETS = [
   "/",
   "/offline",
+  "/dashboard",
+  "/hsk-levels",
+  "/grammar",
+  "/radicals",
+  "/practice",
+  "/pricing",
+  "/sign-in",
+  "/sign-up",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
 ];
@@ -15,7 +23,10 @@ const STATIC_ASSETS = [
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
+      // تخزين كل ملف على حدة — لو فشل واحد يكمل الباقي
+      return Promise.allSettled(
+        STATIC_ASSETS.map((asset) => cache.add(asset))
+      );
     })
   );
   self.skipWaiting();
@@ -52,11 +63,34 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // استراتيجية: Network First (الشبكة أولاً، الكاش كاحتياط)
+  // صفحات المحتوى: Cache First (أسرع للمستخدم)
+  const contentPages = ["/hsk-levels", "/grammar", "/radicals", "/practice"];
+  if (contentPages.some((page) => url.pathname.startsWith(page))) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) {
+          // حدّث الكاش في الخلفية
+          fetch(request)
+            .then((response) => {
+              if (response && response.status === 200) {
+                caches.open(CACHE_NAME).then((cache) => {
+                  cache.put(request, response);
+                });
+              }
+            })
+            .catch(() => {});
+          return cached;
+        }
+        return fetch(request).catch(() => caches.match("/offline"));
+      })
+    );
+    return;
+  }
+
+  // باقي الصفحات: Network First
   event.respondWith(
     fetch(request)
       .then((response) => {
-        // خزّن نسخة في الكاش إذا كانت الاستجابة صحيحة
         if (response && response.status === 200 && response.type === "basic") {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -66,10 +100,8 @@ self.addEventListener("fetch", (event) => {
         return response;
       })
       .catch(() => {
-        // إذا فشلت الشبكة، ابحث في الكاش
         return caches.match(request).then((cached) => {
           if (cached) return cached;
-          // إذا لم يوجد في الكاش، أعد صفحة offline
           if (request.destination === "document") {
             return caches.match("/offline");
           }
