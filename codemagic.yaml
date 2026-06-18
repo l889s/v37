@@ -9,17 +9,7 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.hskarabia.app
-      node: 20
     scripts:
-      - name: Install dependencies
-        script: |
-          npm ci
-      - name: Build Next.js web
-        script: |
-          npm run build
-      - name: Sync Capacitor
-        script: |
-          npx cap sync ios
       - name: Set up code signing
         script: |
           xcode-project use-profiles
