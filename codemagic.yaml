@@ -14,6 +14,7 @@ workflows:
       vars:
         XCODE_PROJECT: "App.xcodeproj"
         XCODE_SCHEME: "App"
+        BUILD_NUMBER: 2
     scripts:
       - name: Set up code signing
         script: |
@@ -26,6 +27,7 @@ workflows:
           xcode-project build-ipa \
             --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME" \
+            --build-number $BUILD_NUMBER \
             --archive-xcargs "CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER='HSK Arabia App Store' CODE_SIGN_IDENTITY='Apple Distribution' DEVELOPMENT_TEAM=9Z33JBXVCA" \
             --verbose
     artifacts:
