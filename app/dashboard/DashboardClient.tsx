@@ -27,7 +27,16 @@ export function DashboardClient({
     router.refresh();
   }
 
-  const isPaid = subscriptionStatus === "paid" || subscriptionStatus === "active";
+  // على iOS: كل المحتوى مجاني (الدفع لاحقاً عبر Apple IAP فقط)
+  const isIOSApp =
+    typeof window !== "undefined" &&
+    (window as any).Capacitor &&
+    typeof (window as any).Capacitor.getPlatform === "function" &&
+    (window as any).Capacitor.getPlatform() === "ios";
+  const isPaid =
+    isIOSApp ||
+    subscriptionStatus === "paid" ||
+    subscriptionStatus === "active";
 
   const trialDaysLeft = trialEndsAt
     ? Math.max(

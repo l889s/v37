@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { createClient } from "@/lib/supabase/client";
+import { SignInWithApple } from "@capacitor-community/apple-sign-in";
 
 function SignInForm() {
   const router = useRouter();
@@ -87,6 +88,54 @@ function SignInForm() {
     setError(null);
     setAppleLoading(true);
     const supabase = createClient();
+
+    // فحص لحظي مباشر للمنصة (بدون الاعتماد على state — يمنع فتح Safari على iOS)
+    const capNow = (window as any).Capacitor;
+    const platformNow =
+      capNow && typeof capNow.getPlatform === "function"
+        ? capNow.getPlatform()
+        : "web";
+    const isIOSNow = platformNow === "ios";
+
+    // داخل تطبيق iOS: استخدم شاشة Apple الأصلية (Native) فقط
+    if (isIOSNow) {
+      try {
+        const result = await SignInWithApple.authorize({
+          clientId: "com.hskarabia.app.signin",
+          redirectURI: `${window.location.origin}/auth/callback`,
+          scopes: "name email",
+        });
+        const idToken = result.response?.identityToken;
+        if (!idToken) {
+          setError("تعذّر تسجيل الدخول بـ Apple. حاول مجدداً.");
+          setAppleLoading(false);
+          return;
+        }
+        const { error: idErr } = await supabase.auth.signInWithIdToken({
+          provider: "apple",
+          token: idToken,
+        });
+        if (idErr) {
+          setError("تعذّر تسجيل الدخول بـ Apple. حاول مجدداً.");
+          setAppleLoading(false);
+          return;
+        }
+        const redirect = searchParams.get("redirect") || "/dashboard";
+        router.push(redirect);
+        router.refresh();
+      } catch (e) {
+        setError("تم إلغاء تسجيل الدخول بـ Apple.");
+        setAppleLoading(false);
+      }
+      return;
+    }
+
+    // على iOS لا نصل هنا أبداً. الويب فقط: OAuth redirect المعتاد
+    if (isIOSNow) {
+      setError("تعذّر فتح تسجيل دخول Apple. حاول مجدداً.");
+      setAppleLoading(false);
+      return;
+    }
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "apple",
       options: { redirectTo: `${window.location.origin}/auth/callback` },

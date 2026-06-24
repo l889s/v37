@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Check, ArrowRight, Sparkles, Crown } from "lucide-react";
 
@@ -63,6 +63,18 @@ const features = [
 ];
 
 export default function PricingPage() {
+  // على iOS: لا نعرض صفحة الأسعار (الدفع لاحقاً عبر Apple IAP فقط)
+  useEffect(() => {
+    const cap = (window as any).Capacitor;
+    const isIOS =
+      cap &&
+      typeof cap.getPlatform === "function" &&
+      cap.getPlatform() === "ios";
+    if (isIOS) {
+      window.location.replace("/dashboard");
+    }
+  }, []);
+
   const [selected, setSelected] = useState("yearly");
 
   const selectedPlan = plans.find((p) => p.id === selected)!;
