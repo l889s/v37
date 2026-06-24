@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { createClient } from "@/lib/supabase/client";
-import { SignInWithApple } from "@capacitor-community/apple-sign-in";
 
 function SignInForm() {
   const router = useRouter();
@@ -100,6 +99,9 @@ function SignInForm() {
     // داخل تطبيق iOS: استخدم شاشة Apple الأصلية (Native) فقط
     if (isIOSNow) {
       try {
+        const { SignInWithApple } = await import(
+          "@capacitor-community/apple-sign-in"
+        );
         const result = await SignInWithApple.authorize({
           clientId: "com.hskarabia.app.signin",
           redirectURI: `${window.location.origin}/auth/callback`,
