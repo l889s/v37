@@ -26,9 +26,16 @@ export function LevelWordsClient({
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [isPaid, setIsPaid] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [isIOS, setIsIOS] = useState(false);
   const { speak, supported } = useSpeech();
   const { markRead } = useReadWords(level.id, words.length);
   const { toast } = useToast();
+
+  // اكتشاف منصّة iOS — على iOS كل المحتوى مجاني بالكامل
+  useEffect(() => {
+    const cap = typeof window !== "undefined" ? (window as any).Capacitor : null;
+    if (cap?.getPlatform?.() === "ios") setIsIOS(true);
+  }, []);
 
   // فحص حالة الاشتراك
   useEffect(() => {
@@ -76,8 +83,8 @@ export function LevelWordsClient({
   }
 
   function toggleItem(i: number, wordId: string) {
-    // منع فتح الكلمات المقفلة
-    if (!isPaid && i >= FREE_LIMIT) return;
+    // منع فتح الكلمات المقفلة — لا قفل على iOS
+    if (!isIOS && !isPaid && i >= FREE_LIMIT) return;
     setOpenIndex((prev) => {
       const opening = prev !== i;
       if (opening) markRead(wordId);
@@ -129,8 +136,8 @@ export function LevelWordsClient({
           <p className="mt-1.5 text-[13px] text-muted">{level.desc}</p>
         </div>
 
-        {/* شريط المجاني — يظهر فقط للغير مشتركين */}
-        {!isPaid && !checkingAuth && words.length > FREE_LIMIT && (
+        {/* شريط المجاني — يظهر فقط للغير مشتركين (مخفي على iOS) */}
+        {!isIOS && !isPaid && !checkingAuth && words.length > FREE_LIMIT && (
           <div
             className="mb-4 flex items-center justify-between rounded-xl px-4 py-3"
             style={{ background: "#FFF8E7", border: "1px solid #FFD97D" }}
@@ -234,7 +241,7 @@ export function LevelWordsClient({
           >
             {visible.map((w, i) => {
               const isOpen = openIndex === i;
-              const isLocked = !isPaid && i >= FREE_LIMIT;
+              const isLocked = !isIOS && !isPaid && i >= FREE_LIMIT;
               const charSize =
                 w.w.length <= 1
                   ? "text-[28px]"
@@ -377,7 +384,7 @@ export function LevelWordsClient({
                     </div>
                   )}
 
-                  {/* بانر الاشتراك — يظهر عند الكلمة 51 فقط */}
+                  {/* بانر الاشتراك — يظهر عند الكلمة 51 فقط (مخفي على iOS) */}
                   {isLocked && i === FREE_LIMIT && (
                     <div
                       className="flex items-center justify-between px-4 py-3"
