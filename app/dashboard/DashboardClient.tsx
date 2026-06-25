@@ -54,24 +54,33 @@ export function DashboardClient({
       <div className="mx-auto max-w-xl">
 
         {/* رأس الصفحة */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-extrabold text-ink">
               أهلاً{firstName ? `، ${firstName}` : ""} 👋
             </h1>
             <p className="mt-0.5 text-sm text-muted" dir="ltr">{email}</p>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-[13px] font-bold text-ink hover:bg-gray-50 transition-colors"
-          >
-            <LogOut className="h-4 w-4" />
-            خروج
-          </button>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={handleSignOut}
+              className="flex items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-[13px] font-bold text-ink hover:bg-gray-50 transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+              خروج
+            </button>
+            <Link
+              href="/delete-account"
+              className="flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-[13px] font-bold transition-colors"
+              style={{ borderColor: "#FCA5A5", color: "#DC2626" }}
+            >
+              حذف الحساب
+            </Link>
+          </div>
         </div>
 
-        {/* بطاقة الاشتراك */}
-        {isPaid ? (
+        {/* بطاقة الاشتراك — مخفية على iOS */}
+        {!isIOSApp && isPaid ? (
           <div
             className="mb-5 rounded-2xl p-5"
             style={{
@@ -90,7 +99,7 @@ export function DashboardClient({
               </div>
             </div>
           </div>
-        ) : (
+        ) : !isIOSApp ? (
           <div
             className="mb-5 rounded-2xl p-5"
             style={{
@@ -123,7 +132,7 @@ export function DashboardClient({
               </Link>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* روابط سريعة */}
         <div className="mb-5 grid grid-cols-2 gap-3">
@@ -161,8 +170,8 @@ export function DashboardClient({
           />
         </div>
 
-        {/* بطاقة الترقية — فقط للمجانيين */}
-        {!isPaid && (
+        {/* بطاقة الترقية — فقط للمجانيين وغير iOS */}
+        {!isIOSApp && !isPaid && (
           <div
             className="rounded-2xl p-5"
             style={{
