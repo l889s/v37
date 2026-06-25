@@ -6,5 +6,7 @@
 		"url": "https://hsk-ar.com",
 		"cleartext": false
 	},
-	"packageClassList": []
+	"packageClassList": [
+		"SignInWithApple"
+	]
 }
