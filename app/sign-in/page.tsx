@@ -120,7 +120,7 @@ function SignInForm() {
         });
         const idToken = result.response?.identityToken;
         if (!idToken) {
-          setError("تعذّر تسجيل الدخول بـ Apple. حاول مجدداً.");
+          setError("لم نستلم رمز Apple (idToken فارغ).");
           setAppleLoading(false);
           return;
         }
@@ -131,15 +131,17 @@ function SignInForm() {
           nonce: rawNonce,
         });
         if (idErr) {
-          setError("تعذّر تسجيل الدخول بـ Apple. حاول مجدداً.");
+          setError("خطأ Supabase: " + (idErr.message || JSON.stringify(idErr)));
           setAppleLoading(false);
           return;
         }
         const redirect = searchParams.get("redirect") || "/dashboard";
         router.push(redirect);
         router.refresh();
-      } catch (e) {
-        setError("تم إلغاء تسجيل الدخول بـ Apple.");
+      } catch (e: any) {
+        const msg =
+          e?.message || e?.code || JSON.stringify(e) || "خطأ غير معروف";
+        setError("خطأ Apple: " + msg);
         setAppleLoading(false);
       }
       return;
@@ -312,7 +314,7 @@ function SignInForm() {
           {loading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              جار الدخول…
+              جارٍ الدخول…
             </>
           ) : (
             "تسجيل الدخول"
