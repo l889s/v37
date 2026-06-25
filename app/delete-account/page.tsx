@@ -1,54 +1,106 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 export default function DeleteAccountPage() {
   const [step, setStep] = useState<"info" | "confirm" | "done">("info");
   const [password, setPassword] = useState("");
+  const [confirmText, setConfirmText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // null = نتحقق, true = دخول عبر Apple/Google (بدون كلمة مرور), false = إيميل وكلمة مرور
+  const [isOAuthUser, setIsOAuthUser] = useState<boolean | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
-  async function handleDelete() {
-    if (!password) {
-      setError("أدخل كلمة المرور للمتابعة.");
-      return;
-    }
-    setLoading(true);
-    setError("");
-
-    try {
-      // 1. Re-authenticate to verify password
+  // نكتشف نوع تسجيل الدخول عند فتح الصفحة
+  useEffect(() => {
+    async function checkAuthProvider() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user?.email) {
+      if (user) {
+        // نجمع كل مزوّدي الدخول لهذا المستخدم
+        const providers = (user.identities || []).map((i) => i.provider);
+        const appMetaProvider = user.app_metadata?.provider;
+
+        // لو فيه أي مزوّد خارجي (apple/google) ولا يوجد مزوّد "email" → مستخدم OAuth
+        const hasEmailProvider =
+          providers.includes("email") || appMetaProvider === "email";
+        const hasOAuthProvider =
+          providers.some((p) => p === "apple" || p === "google") ||
+          appMetaProvider === "apple" ||
+          appMetaProvider === "google";
+
+        setIsOAuthUser(hasOAuthProvider && !hasEmailProvider);
+      } else {
+        setIsOAuthUser(false);
+      }
+    }
+    checkAuthProvider();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleDelete() {
+    setError("");
+
+    // التحقق حسب نوع المستخدم
+    if (isOAuthUser) {
+      // مستخدم Apple/Google: نطلب كتابة كلمة "حذف"
+      if (confirmText.trim() !== "حذف") {
+        setError('اكتب كلمة "حذف" للتأكيد.');
+        return;
+      }
+    } else {
+      // مستخدم إيميل/كلمة مرور
+      if (!password) {
+        setError("أدخل كلمة المرور للمتابعة.");
+        return;
+      }
+    }
+
+    setLoading(true);
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user?.id) {
         setError("لم يتم التعرف على حسابك. سجّل دخولك مجدداً.");
         setLoading(false);
         return;
       }
 
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password,
-      });
+      // إعادة التحقق بكلمة المرور — فقط لمستخدمي الإيميل
+      if (!isOAuthUser) {
+        if (!user.email) {
+          setError("لم يتم التعرف على بريدك. سجّل دخولك مجدداً.");
+          setLoading(false);
+          return;
+        }
 
-      if (signInError) {
-        setError("كلمة المرور غلط. حاول مرة ثانية.");
-        setLoading(false);
-        return;
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: user.email,
+          password,
+        });
+
+        if (signInError) {
+          setError("كلمة المرور غلط. حاول مرة ثانية.");
+          setLoading(false);
+          return;
+        }
       }
 
-      // 2. Delete user data from public tables
+      // حذف بيانات المستخدم من الجداول العامة
       await supabase.from("user_progress").delete().eq("user_id", user.id);
       await supabase.from("user_achievements").delete().eq("user_id", user.id);
       await supabase.from("profiles").delete().eq("id", user.id);
 
-      // 3. Delete auth user via Edge Function (requires admin key on server)
+      // حذف حساب المصادقة عبر الخادم (يحتاج مفتاح الأدمن)
       const res = await fetch("/api/delete-account", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -62,9 +114,7 @@ export default function DeleteAccountPage() {
       await supabase.auth.signOut();
       setStep("done");
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "حدث خطأ. تواصل مع الدعم."
-      );
+      setError(err instanceof Error ? err.message : "حدث خطأ. تواصل مع الدعم.");
     } finally {
       setLoading(false);
     }
@@ -82,9 +132,7 @@ export default function DeleteAccountPage() {
           <span className="text-2xl font-bold text-[#FF4D4F]">HSK</span>
           <span className="text-2xl font-bold text-[#1A1A1A]"> بالعربي</span>
         </a>
-        <h1 className="text-3xl font-bold text-[#1A1A1A] mb-2">
-          حذف الحساب
-        </h1>
+        <h1 className="text-3xl font-bold text-[#1A1A1A] mb-2">حذف الحساب</h1>
         <p className="text-[#666] text-base">
           نأخذ خصوصيتك بجدية — لك الحق الكامل في حذف حسابك في أي وقت.
         </p>
@@ -92,7 +140,6 @@ export default function DeleteAccountPage() {
 
       {/* Card */}
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-sm border border-[#EBEBEB] overflow-hidden">
-
         {step === "info" && (
           <>
             {/* Warning Banner */}
@@ -115,7 +162,10 @@ export default function DeleteAccountPage() {
                   "الإنجازات والشارات المكتسبة",
                   "إحصائياتك وسجل التعلّم",
                 ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-[#444]">
+                  <li
+                    key={i}
+                    className="flex items-start gap-3 text-sm text-[#444]"
+                  >
                     <span className="w-5 h-5 rounded-full bg-[#FFF0F0] text-[#FF4D4F] flex items-center justify-center flex-shrink-0 text-xs font-bold mt-0.5">
                       ✕
                     </span>
@@ -166,25 +216,54 @@ export default function DeleteAccountPage() {
             <h2 className="text-lg font-bold text-[#1A1A1A] mb-2">
               تأكيد الحذف
             </h2>
-            <p className="text-sm text-[#666] mb-6 leading-relaxed">
-              لحماية حسابك، أدخل كلمة المرور لتأكيد أنك صاحب الحساب.
-            </p>
 
-            <label className="block text-sm font-semibold text-[#333] mb-2">
-              كلمة المرور
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full border border-[#DCDCDC] rounded-xl px-4 py-3 text-sm text-[#1A1A1A] bg-[#FAFAF8] focus:outline-none focus:border-[#FF4D4F] mb-2 transition-colors"
-              onKeyDown={(e) => e.key === "Enter" && handleDelete()}
-            />
+            {/* نعرض الحقل المناسب حسب نوع الدخول */}
+            {isOAuthUser === null ? (
+              // أثناء التحقق من نوع الدخول
+              <p className="text-sm text-[#666] mb-6">جارٍ التحقق...</p>
+            ) : isOAuthUser ? (
+              // مستخدم Apple/Google — تأكيد بكلمة "حذف"
+              <>
+                <p className="text-sm text-[#666] mb-6 leading-relaxed">
+                  لتأكيد حذف حسابك نهائياً، اكتب كلمة{" "}
+                  <span className="font-bold text-[#FF4D4F]">حذف</span> في الحقل
+                  أدناه.
+                </p>
 
-            {error && (
-              <p className="text-xs text-[#FF4D4F] mb-4 mt-1">{error}</p>
+                <label className="block text-sm font-semibold text-[#333] mb-2">
+                  اكتب: حذف
+                </label>
+                <input
+                  type="text"
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  placeholder="حذف"
+                  className="w-full border border-[#DCDCDC] rounded-xl px-4 py-3 text-sm text-[#1A1A1A] bg-[#FAFAF8] focus:outline-none focus:border-[#FF4D4F] mb-2 transition-colors text-center"
+                  onKeyDown={(e) => e.key === "Enter" && handleDelete()}
+                />
+              </>
+            ) : (
+              // مستخدم إيميل/كلمة مرور
+              <>
+                <p className="text-sm text-[#666] mb-6 leading-relaxed">
+                  لحماية حسابك، أدخل كلمة المرور لتأكيد أنك صاحب الحساب.
+                </p>
+
+                <label className="block text-sm font-semibold text-[#333] mb-2">
+                  كلمة المرور
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full border border-[#DCDCDC] rounded-xl px-4 py-3 text-sm text-[#1A1A1A] bg-[#FAFAF8] focus:outline-none focus:border-[#FF4D4F] mb-2 transition-colors"
+                  onKeyDown={(e) => e.key === "Enter" && handleDelete()}
+                />
+              </>
             )}
+
+            {error && <p className="text-xs text-[#FF4D4F] mb-4 mt-1">{error}</p>}
 
             <div className="flex gap-3 mt-6">
               <button
@@ -192,6 +271,7 @@ export default function DeleteAccountPage() {
                   setStep("info");
                   setError("");
                   setPassword("");
+                  setConfirmText("");
                 }}
                 className="flex-1 py-3 rounded-xl border border-[#DCDCDC] text-[#444] text-sm font-semibold hover:bg-[#F5F5F5] transition-colors"
               >
@@ -199,7 +279,7 @@ export default function DeleteAccountPage() {
               </button>
               <button
                 onClick={handleDelete}
-                disabled={loading}
+                disabled={loading || isOAuthUser === null}
                 className="flex-1 py-3 rounded-xl bg-[#FF4D4F] text-white text-sm font-semibold hover:bg-[#E53E3E] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {loading ? "جارٍ الحذف..." : "احذف حسابي نهائياً"}
@@ -217,8 +297,8 @@ export default function DeleteAccountPage() {
               تم حذف حسابك
             </h2>
             <p className="text-sm text-[#666] leading-relaxed mb-8">
-              حُذفت جميع بياناتك بنجاح. شكراً لاستخدامك المنصة — نتمنى أن
-              نراك مجدداً.
+              حُذفت جميع بياناتك بنجاح. شكراً لاستخدامك المنصة — نتمنى أن نراك
+              مجدداً.
             </p>
             <a
               href="/"
