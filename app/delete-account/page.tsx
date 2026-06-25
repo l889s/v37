@@ -26,16 +26,18 @@ export default function DeleteAccountPage() {
         // نجمع كل مزوّدي الدخول لهذا المستخدم
         const providers = (user.identities || []).map((i) => i.provider);
         const appMetaProvider = user.app_metadata?.provider;
+        const appMetaProviders = user.app_metadata?.providers || [];
 
-        // لو فيه أي مزوّد خارجي (apple/google) ولا يوجد مزوّد "email" → مستخدم OAuth
-        const hasEmailProvider =
-          providers.includes("email") || appMetaProvider === "email";
+        // لو فيه أي مزوّد Apple أو Google ضمن مزوّدي المستخدم → نعتبره OAuth
+        // (نتجاوز كلمة المرور لأن مستخدم Apple/Google ما له كلمة مرور حقيقية)
         const hasOAuthProvider =
           providers.some((p) => p === "apple" || p === "google") ||
           appMetaProvider === "apple" ||
-          appMetaProvider === "google";
+          appMetaProvider === "google" ||
+          appMetaProviders.includes("apple") ||
+          appMetaProviders.includes("google");
 
-        setIsOAuthUser(hasOAuthProvider && !hasEmailProvider);
+        setIsOAuthUser(hasOAuthProvider);
       } else {
         setIsOAuthUser(false);
       }
