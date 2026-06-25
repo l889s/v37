@@ -19,11 +19,8 @@ function SignInForm() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [xLoading, setXLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
-  const [error, setError] = useState<string | null>(
-    searchParams.get("error")
-  );
+  const [error, setError] = useState<string | null>(searchParams.get("error"));
 
-  // كشف إذا التطبيق شغّال داخل تطبيق iOS (Capacitor) لإخفاء Google و X
   const [isIOSApp, setIsIOSApp] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -88,7 +85,6 @@ function SignInForm() {
     setAppleLoading(true);
     const supabase = createClient();
 
-    // فحص لحظي مباشر للمنصة (بدون الاعتماد على state — يمنع فتح Safari على iOS)
     const capNow = (window as any).Capacitor;
     const platformNow =
       capNow && typeof capNow.getPlatform === "function"
@@ -96,17 +92,14 @@ function SignInForm() {
         : "web";
     const isIOSNow = platformNow === "ios";
 
-    // داخل تطبيق iOS: استخدم شاشة Apple الأصلية (Native) فقط
     if (isIOSNow) {
       try {
-        // 1) توليد nonce عشوائي خام
         const rawNonce =
           (crypto as any).randomUUID?.() ??
           Array.from(crypto.getRandomValues(new Uint8Array(32)))
             .map((b) => b.toString(16).padStart(2, "0"))
             .join("");
 
-        // 2) تجزئة الـ nonce بـ SHA256 لإرسالها إلى Apple
         const encoder = new TextEncoder();
         const hashBuffer = await crypto.subtle.digest(
           "SHA-256",
@@ -127,33 +120,33 @@ function SignInForm() {
         });
         const idToken = result.response?.identityToken;
         if (!idToken) {
-          setError("تعذر تسجيل الدخول بـ Apple. حاول مجدداً.");
+          setError("لم نستلم رمز Apple (idToken فارغ).");
           setAppleLoading(false);
           return;
         }
 
-        // 3) إرسال idToken مع الـ nonce الخام إلى Supabase للتحقق
         const { error: idErr } = await supabase.auth.signInWithIdToken({
           provider: "apple",
           token: idToken,
           nonce: rawNonce,
         });
         if (idErr) {
-          setError("تعذّر تسجيل الدخول بـ Apple. حاول مجدداً.");
+          setError("خطأ Supabase: " + (idErr.message || JSON.stringify(idErr)));
           setAppleLoading(false);
           return;
         }
         const redirect = searchParams.get("redirect") || "/dashboard";
         router.push(redirect);
         router.refresh();
-      } catch (e) {
-        setError("تم إلغاء تسجيل الدخول بـ Apple.");
+      } catch (e: any) {
+        const msg =
+          e?.message || e?.code || JSON.stringify(e) || "خطأ غير معروف";
+        setError("خطأ Apple: " + msg);
         setAppleLoading(false);
       }
       return;
     }
 
-    // الويب فقط: OAuth redirect المعتاد
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "apple",
       options: { redirectTo: `${window.location.origin}/auth/callback` },
@@ -168,7 +161,6 @@ function SignInForm() {
 
   return (
     <div className="w-full max-w-sm">
-      {/* الشعار */}
       <div className="mb-8 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-coral font-cn text-2xl font-black text-white shadow-[0_8px_20px_rgba(255,77,79,0.32)]">
           中
@@ -177,7 +169,6 @@ function SignInForm() {
         <p className="mt-1.5 text-sm text-muted">سجّل دخولك لمتابعة رحلتك</p>
       </div>
 
-      {/* البطاقة */}
       <div
         className="rounded-2xl bg-white p-6"
         style={{
@@ -186,7 +177,6 @@ function SignInForm() {
             "0 1px 2px rgba(17,24,39,0.04), 0 8px 24px rgba(17,24,39,0.06)",
         }}
       >
-        {/* رسالة الخطأ */}
         {error && (
           <div
             className="mb-4 flex items-start gap-2 rounded-lg px-3.5 py-3 text-[13px] font-semibold"
@@ -198,7 +188,6 @@ function SignInForm() {
           </div>
         )}
 
-        {/* زر Google — مخفي داخل تطبيق iOS */}
         {!isIOSApp && (
           <button
             onClick={handleGoogleSignIn}
@@ -219,7 +208,6 @@ function SignInForm() {
           </button>
         )}
 
-        {/* زر X — مخفي داخل تطبيق iOS */}
         {!isIOSApp && (
           <button
             onClick={handleXSignIn}
@@ -236,3 +224,123 @@ function SignInForm() {
             تسجيل الدخول بـ X
           </button>
         )}
+
+        <button
+          onClick={handleAppleSignIn}
+          disabled={anyLoading}
+          className="mb-4 flex w-full items-center justify-center gap-2 rounded-lg bg-black py-3 text-[14px] font-bold text-white transition hover:bg-gray-900 disabled:opacity-60"
+          style={{ border: "1px solid #000" }}
+        >
+          {appleLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+            </svg>
+          )}
+          تسجيل الدخول بـ Apple
+        </button>
+
+        <div className="mb-4 flex items-center gap-3">
+          <div className="h-px flex-1 bg-line" />
+          <span className="text-[12px] text-muted">أو</span>
+          <div className="h-px flex-1 bg-line" />
+        </div>
+
+        <label className="mb-4 block">
+          <span className="mb-1.5 block text-[13px] font-bold text-ink">
+            البريد الإلكتروني
+          </span>
+          <div className="relative">
+            <Mail className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+            <input
+              type="email"
+              inputMode="email"
+              dir="ltr"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              placeholder="you@example.com"
+              autoComplete="email"
+              className="w-full rounded-lg border border-line bg-white py-3 pr-10 pl-3 text-[14px] text-ink outline-none transition-colors focus:border-coral"
+              disabled={anyLoading}
+            />
+          </div>
+        </label>
+
+        <label className="mb-2 block">
+          <span className="mb-1.5 block text-[13px] font-bold text-ink">
+            كلمة المرور
+          </span>
+          <div className="relative">
+            <Lock className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+            <input
+              type={showPassword ? "text" : "password"}
+              dir="ltr"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              placeholder="••••••••"
+              autoComplete="current-password"
+              className="w-full rounded-lg border border-line bg-white py-3 pr-10 pl-10 text-[14px] text-ink outline-none transition-colors focus:border-coral"
+              disabled={anyLoading}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink"
+              aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </label>
+
+        <div className="mb-5 text-left">
+          <Link
+            href="/forgot-password"
+            className="text-[12.5px] font-bold text-coral hover:underline"
+          >
+            نسيت كلمة المرور؟
+          </Link>
+        </div>
+
+        <button
+          onClick={handleSubmit}
+          disabled={anyLoading}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-coral py-3.5 text-[15px] font-extrabold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              جارٍ الدخول…
+            </>
+          ) : (
+            "تسجيل الدخول"
+          )}
+        </button>
+      </div>
+
+      <p className="mt-6 text-center text-[13.5px] text-muted">
+        ليس لديك حساب؟{" "}
+        <Link href="/sign-up" className="font-extrabold text-coral hover:underline">
+          سجّل الآن
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <main
+      className="flex min-h-screen items-center justify-center px-5 py-10"
+      style={{ background: "#FAFAF8" }}
+    >
+      <Suspense fallback={<Loader2 className="h-6 w-6 animate-spin text-coral" />}>
+        <SignInForm />
+      </Suspense>
+    </main>
+  );
+}
