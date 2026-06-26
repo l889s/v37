@@ -14,6 +14,23 @@ const FREE_LIMIT = 50;
 
 type SortMode = "original" | "alpha";
 
+// كشف iOS قوي: Capacitor أولاً، ثم user-agent كاحتياط (يغطي iPhone و iPad و iPod)
+function detectIOS(): boolean {
+  if (typeof window === "undefined") return false;
+  const cap = (window as any).Capacitor;
+  if (cap && typeof cap.getPlatform === "function" && cap.getPlatform() === "ios") {
+    return true;
+  }
+  const ua = window.navigator.userAgent || "";
+  const isIOSDevice = /iPad|iPhone|iPod/.test(ua);
+  // iPadOS الحديث يظهر كـ Mac، فنكشفه عبر اللمس
+  const isIPadOS =
+    ua.includes("Macintosh") &&
+    typeof document !== "undefined" &&
+    "ontouchend" in document;
+  return isIOSDevice || isIPadOS;
+}
+
 export function LevelWordsClient({
   level,
   words,
@@ -33,8 +50,7 @@ export function LevelWordsClient({
 
   // اكتشاف منصّة iOS — على iOS كل المحتوى مجاني بالكامل
   useEffect(() => {
-    const cap = typeof window !== "undefined" ? (window as any).Capacitor : null;
-    if (cap?.getPlatform?.() === "ios") setIsIOS(true);
+    if (detectIOS()) setIsIOS(true);
   }, []);
 
   // فحص حالة الاشتراك
@@ -144,10 +160,10 @@ export function LevelWordsClient({
           >
             <div>
               <p className="text-[13px] font-bold text-amber-800">
-                🆓 أول {FREE_LIMIT} كلمة مجانية
+                🆓 أول {FREE_LIMIT} كلمة متاحة
               </p>
               <p className="text-[11.5px] text-amber-700 mt-0.5">
-                اشترك للوصول لكل {words.length} كلمة
+                سجّل للوصول لكل {words.length} كلمة
               </p>
             </div>
             <Link
@@ -155,7 +171,7 @@ export function LevelWordsClient({
               className="rounded-lg px-4 py-2 text-[12.5px] font-bold text-white transition-colors"
               style={{ background: level.color }}
             >
-              اشترك الآن
+              سجّل الآن
             </Link>
           </div>
         )}
@@ -311,7 +327,7 @@ export function LevelWordsClient({
                           color: "#9CA3AF",
                         }}
                       >
-                        اشترك 🔒
+                        سجّل 🔒
                       </Link>
                     ) : (
                       <button
@@ -384,7 +400,7 @@ export function LevelWordsClient({
                     </div>
                   )}
 
-                  {/* بانر الاشتراك — يظهر عند الكلمة 51 فقط (مخفي على iOS) */}
+                  {/* بانر التسجيل — يظهر عند الكلمة 51 فقط (مخفي على iOS) */}
                   {isLocked && i === FREE_LIMIT && (
                     <div
                       className="flex items-center justify-between px-4 py-3"
@@ -392,10 +408,10 @@ export function LevelWordsClient({
                     >
                       <div>
                         <p className="text-[13px] font-bold text-amber-800">
-                          🔒 وصلت للحد المجاني
+                          🔒 وصلت للحد المتاح
                         </p>
                         <p className="text-[11.5px] text-amber-700">
-                          اشترك للوصول لباقي الكلمات
+                          سجّل للوصول لباقي الكلمات
                         </p>
                       </div>
                       <Link
@@ -403,7 +419,7 @@ export function LevelWordsClient({
                         className="rounded-lg px-4 py-2 text-[12.5px] font-bold text-white"
                         style={{ background: level.color }}
                       >
-                        اشترك الآن
+                        سجّل الآن
                       </Link>
                     </div>
                   )}

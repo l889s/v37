@@ -12,6 +12,23 @@ type Props = {
   trialEndsAt: string | null;
 };
 
+// كشف iOS قوي: Capacitor أولاً، ثم user-agent كاحتياط (يغطي iPhone و iPad و iPod)
+function detectIOS(): boolean {
+  if (typeof window === "undefined") return false;
+  const cap = (window as any).Capacitor;
+  if (cap && typeof cap.getPlatform === "function" && cap.getPlatform() === "ios") {
+    return true;
+  }
+  const ua = window.navigator.userAgent || "";
+  const isIOSDevice = /iPad|iPhone|iPod/.test(ua);
+  // iPadOS الحديث يظهر كـ Mac، فنكشفه عبر اللمس
+  const isIPadOS =
+    ua.includes("Macintosh") &&
+    typeof document !== "undefined" &&
+    "ontouchend" in document;
+  return isIOSDevice || isIPadOS;
+}
+
 export function DashboardClient({
   email,
   fullName,
@@ -27,12 +44,8 @@ export function DashboardClient({
     router.refresh();
   }
 
-  // على iOS: كل المحتوى مجاني (الدفع لاحقاً عبر Apple IAP فقط)
-  const isIOSApp =
-    typeof window !== "undefined" &&
-    (window as any).Capacitor &&
-    typeof (window as any).Capacitor.getPlatform === "function" &&
-    (window as any).Capacitor.getPlatform() === "ios";
+  // على iOS: كل المحتوى مجاني (بدون أي إشارة دفع)
+  const isIOSApp = detectIOS();
   const isPaid =
     isIOSApp ||
     subscriptionStatus === "paid" ||
@@ -79,7 +92,7 @@ export function DashboardClient({
           </div>
         </div>
 
-        {/* بطاقة الاشتراك — مخفية على iOS */}
+        {/* بطاقة الاشتراك — مخفية تماماً على iOS */}
         {!isIOSApp && isPaid ? (
           <div
             className="mb-5 rounded-2xl p-5"
@@ -92,7 +105,7 @@ export function DashboardClient({
                 <Crown className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h2 className="text-base font-extrabold text-white">مشترك مدفوع ✨</h2>
+                <h2 className="text-base font-extrabold text-white">حساب كامل ✨</h2>
                 <p className="mt-0.5 text-[12.5px] text-white/80">
                   تمتع بالوصول الكامل لجميع الكلمات
                 </p>
@@ -107,29 +120,20 @@ export function DashboardClient({
               border: "1.5px solid #F3C97A",
             }}
           >
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/60">
-                  <Sparkles className="h-6 w-6" style={{ color: "#B45309" }} />
-                </div>
-                <div>
-                  <h2 className="text-base font-extrabold" style={{ color: "#B45309" }}>
-                    {trialDaysLeft !== null && trialDaysLeft > 0
-                      ? `${trialDaysLeft} يوم متبقٍّ في التجربة`
-                      : "الحساب المجاني"}
-                  </h2>
-                  <p className="mt-0.5 text-[12px] font-semibold" style={{ color: "#C2761A" }}>
-                    أول 50 كلمة مجانية في كل مستوى
-                  </p>
-                </div>
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/60">
+                <Sparkles className="h-6 w-6" style={{ color: "#B45309" }} />
               </div>
-              <Link
-                href="/pricing"
-                className="shrink-0 rounded-xl px-4 py-2 text-[12.5px] font-bold text-white transition-colors"
-                style={{ background: "#B45309" }}
-              >
-                اشترك
-              </Link>
+              <div>
+                <h2 className="text-base font-extrabold" style={{ color: "#B45309" }}>
+                  {trialDaysLeft !== null && trialDaysLeft > 0
+                    ? `${trialDaysLeft} يوم متبقٍّ في التجربة`
+                    : "الحساب المجاني"}
+                </h2>
+                <p className="mt-0.5 text-[12px] font-semibold" style={{ color: "#C2761A" }}>
+                  أول 50 كلمة في كل مستوى
+                </p>
+              </div>
             </div>
           </div>
         ) : null}
@@ -170,7 +174,7 @@ export function DashboardClient({
           />
         </div>
 
-        {/* بطاقة الترقية — فقط للمجانيين وغير iOS */}
+        {/* بطاقة معلومات المحتوى — مخفية تماماً على iOS */}
         {!isIOSApp && !isPaid && (
           <div
             className="rounded-2xl p-5"
@@ -180,11 +184,11 @@ export function DashboardClient({
               boxShadow: "0 1px 2px rgba(17,24,39,0.04), 0 4px 12px rgba(17,24,39,0.05)",
             }}
           >
-            <h3 className="text-base font-extrabold text-ink mb-1">🔓 افتح كل الكلمات</h3>
+            <h3 className="text-base font-extrabold text-ink mb-1">🔓 محتوى المنصة الكامل</h3>
             <p className="text-[13px] text-muted mb-4">
-              اشترك للوصول لأكثر من 12,000 كلمة في جميع مستويات HSK
+              أكثر من 12,000 كلمة في جميع مستويات HSK
             </p>
-            <div className="space-y-2 mb-4">
+            <div className="space-y-2">
               {[
                 "وصول كامل لكل الكلمات",
                 "جميع مستويات HSK 1-9",
@@ -197,13 +201,6 @@ export function DashboardClient({
                 </div>
               ))}
             </div>
-            <Link
-              href="/pricing"
-              className="block w-full rounded-xl py-3 text-center text-[14px] font-extrabold text-white transition-colors"
-              style={{ background: "linear-gradient(135deg, #6B46C1 0%, #7C5CFC 100%)" }}
-            >
-              اشترك الآن ←
-            </Link>
           </div>
         )}
 
