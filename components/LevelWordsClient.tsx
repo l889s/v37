@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { Search, X, Volume2, ArrowRight, ArrowDownAZ, Hash, ChevronDown, Lock } from "lucide-react";
+import { Search, X, Volume2, ArrowRight, ArrowDownAZ, Hash, ChevronDown, Lock, PencilLine, Repeat2 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useSpeech } from "@/lib/useSpeech";
@@ -9,6 +9,7 @@ import { useToast } from "@/components/Toast";
 import type { Word, HskLevel } from "@/lib/types";
 import { useReadWords } from "@/lib/useReadWords";
 import { createClient } from "@/lib/supabase/client";
+import { HanziWriterModal } from "@/components/HanziWriterModal";
 
 const FREE_LIMIT = 50;
 
@@ -41,6 +42,7 @@ export function LevelWordsClient({
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortMode>("original");
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [writerChars, setWriterChars] = useState<string | null>(null);
   const [isPaid, setIsPaid] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [isIOS, setIsIOS] = useState(false);
@@ -383,7 +385,36 @@ export function LevelWordsClient({
                           {w.sa}
                         </div>
                       </div>
-                      <div className="flex justify-end">
+                      <div className="flex flex-wrap justify-end gap-2">
+                        {/* زر كتابة الحرف */}
+                        <button
+                          className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-[12.5px] font-bold transition-colors"
+                          style={{
+                            background: level.soft,
+                            color: level.color,
+                            boxShadow: `inset 0 0 0 1px ${level.color}33`,
+                          }}
+                          onClick={() => setWriterChars(w.w)}
+                        >
+                          <PencilLine className="h-3.5 w-3.5" />
+                          اكتب الحرف
+                        </button>
+
+                        {/* زر تكرار: كلمة ثم جملة */}
+                        <button
+                          className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-[12.5px] font-bold transition-colors"
+                          style={{
+                            background: "#EEF2FF",
+                            color: "#4338CA",
+                            boxShadow: "inset 0 0 0 1px rgba(67,56,202,.2)",
+                          }}
+                          onClick={() => { play(w.w); setTimeout(() => play(w.s), 1200); }}
+                        >
+                          <Repeat2 className="h-3.5 w-3.5" />
+                          تكرار
+                        </button>
+
+                        {/* استمع للجملة */}
                         <button
                           className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-[12.5px] font-bold transition-colors"
                           style={{
@@ -429,6 +460,15 @@ export function LevelWordsClient({
           </div>
         )}
       </div>
+
+      {/* لوحة كتابة الحرف */}
+      {writerChars && (
+        <HanziWriterModal
+          chars={writerChars}
+          color={level.color}
+          onClose={() => setWriterChars(null)}
+        />
+      )}
     </>
   );
 }
