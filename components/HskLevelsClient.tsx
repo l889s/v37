@@ -42,13 +42,7 @@ export function HskLevelsClient() {
     return <HskLevelsSkeleton />;
   }
 
-  const sys2 = systems["2"];
-  const sys3 = systems["3"];
   const activeLevels = systems[activeSystem].levels;
-
-  // المجاميع لكل نظام
-  const total2 = sys2.levels.reduce((s, l) => s + l.count, 0);
-  const total3 = sys3.levels.reduce((s, l) => s + l.count, 0);
 
   return (
     <div className="mx-auto max-w-2xl px-4 sm:px-5">
@@ -58,7 +52,7 @@ export function HskLevelsClient() {
           active={activeSystem === "2"}
           onClick={() => setActiveSystem("2")}
           title="HSK 2.0"
-          subtitle={`${total2.toLocaleString("en-US")} كلمة`}
+          subtitle="النظام القديم"
           accentColor="#FF4D4F"
           accentBg="bg-coral-soft"
         />
@@ -66,23 +60,16 @@ export function HskLevelsClient() {
           active={activeSystem === "3"}
           onClick={() => setActiveSystem("3")}
           title="HSK 3.0"
-          subtitle={`${total3.toLocaleString("en-US")} كلمة`}
+          subtitle="النظام الجديد"
           accentColor="#11A88E"
           accentBg="bg-mint-soft"
         />
       </div>
 
-      {/* وصف النظام — موحّد مع الصفحة الرئيسية (النظام القديم / النظام الجديد) */}
+      {/* وصف النظام — الوصف وعدد المستويات (التسمية صارت داخل التبويب) */}
       <div className="mb-6 text-[12px] leading-relaxed text-muted">
         <span className="font-bold text-ink">{systems[activeSystem].name}</span>
         {" — "}
-        <span
-          className="font-bold"
-          style={{ color: activeSystem === "2" ? "#FF4D4F" : "#11A88E" }}
-        >
-          {activeSystem === "2" ? "النظام القديم" : "النظام الجديد"}
-        </span>
-        {" · "}
         <span>{systems[activeSystem].subtitle}</span>
         {" · "}
         <span>{activeLevels.length} مستويات</span>
