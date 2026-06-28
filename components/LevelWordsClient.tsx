@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef } from "react";
-import { Search, X, Volume2, ArrowRight, ArrowDownAZ, Hash, ChevronDown, Lock, PencilLine, Repeat2, Square } from "lucide-react";
+import { Search, X, Volume2, ArrowRight, ArrowDownAZ, Hash, ChevronDown, Lock, PencilLine, Repeat2, Square, Bookmark } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useSpeech } from "@/lib/useSpeech";
@@ -14,6 +14,44 @@ import { HanziWriterModal } from "@/components/HanziWriterModal";
 const FREE_LIMIT = 50;
 
 type SortMode = "original" | "alpha";
+
+// ===== علامة الوصول (Bookmark) — تخزين محلي =====
+// يحفظ: آخر كلمة فتحها الطالب (تلقائي) + علامة يدوية يثبّتها بنفسه
+function useBookmark(levelId: string) {
+  const autoKey = `hsk:lastpos:${levelId}`;   // آخر موقع تلقائي
+  const manualKey = `hsk:bookmark:${levelId}`; // العلامة اليدوية
+
+  const [lastPos, setLastPos] = useState<string | null>(null);
+  const [bookmark, setBookmark] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      setLastPos(localStorage.getItem(autoKey));
+      setBookmark(localStorage.getItem(manualKey));
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [levelId]);
+
+  // تحديث آخر موقع تلقائياً (يُستدعى عند فتح كلمة)
+  function saveLastPos(wordKey: string) {
+    setLastPos(wordKey);
+    try { localStorage.setItem(autoKey, wordKey); } catch {}
+  }
+
+  // تثبيت/إلغاء العلامة اليدوية
+  function toggleBookmark(wordKey: string) {
+    setBookmark((prev) => {
+      const next = prev === wordKey ? null : wordKey;
+      try {
+        if (next) localStorage.setItem(manualKey, next);
+        else localStorage.removeItem(manualKey);
+      } catch {}
+      return next;
+    });
+  }
+
+  return { lastPos, bookmark, saveLastPos, toggleBookmark };
+}
 
 // كشف iOS قوي: Capacitor أولاً، ثم user-agent كاحتياط (يغطي iPhone و iPad و iPod)
 function detectIOS(): boolean {
@@ -51,6 +89,17 @@ export function LevelWordsClient({
   const { markRead } = useReadWords(level.id, words.length);
   const { toast } = useToast();
   const loopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // علامة الوصول
+  const { lastPos, bookmark, saveLastPos, toggleBookmark } = useBookmark(level.id);
+
+  // الرقم الثابت حسب المنهج: نربط كل كلمة برقمها الأصلي (1-based)
+  // يبقى ثابتاً حتى لو غيّر الطالب الفرز إلى أبجدي
+  const numberOf = useMemo(() => {
+    const m = new Map<Word, number>();
+    words.forEach((w, idx) => m.set(w, idx + 1));
+    return m;
+  }, [words]);
 
   // اكتشاف منصّة iOS — على iOS كل المحتوى مجاني بالكامل
   useEffect(() => {
@@ -141,13 +190,16 @@ export function LevelWordsClient({
     setLoopingId(null);
   }
 
-  function toggleItem(i: number, wordId: string) {
+  function toggleItem(i: number, wordId: string, wordKey: string) {
     // منع فتح الكلمات المقفلة — لا قفل على iOS
     if (!isIOS && !isPaid && i >= FREE_LIMIT) return;
     stopLoop();
     setOpenIndex((prev) => {
       const opening = prev !== i;
-      if (opening) markRead(wordId);
+      if (opening) {
+        markRead(wordId);
+        saveLastPos(wordKey); // حفظ آخر موقع تلقائياً
+      }
       return opening ? i : null;
     });
   }
@@ -195,6 +247,47 @@ export function LevelWordsClient({
           </div>
           <p className="mt-1.5 text-[13px] text-muted">{level.desc}</p>
         </div>
+
+        {/* شريط استئناف المراجعة — يظهر لو فيه آخر موقع محفوظ أو علامة يدوية */}
+        {(bookmark || lastPos) && (
+          <button
+            onClick={() => {
+              const target = bookmark || lastPos;
+              if (!target) return;
+              // لو فيه بحث/فرز يخفي الكلمة، نرجّع للوضع الأصلي أولاً
+              if (query) setQuery("");
+              if (sort !== "original") setSort("original");
+              // ننتقل للكلمة بعد تحديث القائمة
+              setTimeout(() => {
+                const el = document.getElementById(`word-${target}`);
+                if (el) {
+                  el.scrollIntoView({ behavior: "smooth", block: "center" });
+                  // وميض تمييز بسيط عند الوصول
+                  el.style.transition = "background-color .4s ease";
+                  el.style.backgroundColor = level.soft;
+                  setTimeout(() => { el.style.backgroundColor = ""; }, 1200);
+                }
+              }, 60);
+            }}
+            className="mb-4 flex w-full items-center justify-between rounded-xl px-4 py-3 text-right transition-colors"
+            style={{ background: level.soft, boxShadow: `inset 0 0 0 1px ${level.color}33` }}
+          >
+            <div className="flex items-center gap-2.5">
+              <Bookmark
+                className="h-5 w-5 shrink-0"
+                style={{ color: level.color }}
+                fill={bookmark ? "currentColor" : "none"}
+              />
+              <div>
+                <p className="text-[13px] font-bold" style={{ color: level.color }}>
+                  {bookmark ? "علامتك المحفوظة" : "أكمل من حيث وقفت"}
+                </p>
+                <p className="text-[11px] text-muted">اضغط للانتقال إلى الكلمة</p>
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4" style={{ color: level.color }} />
+          </button>
+        )}
 
         {/* شريط المجاني — يظهر فقط للغير مشتركين (مخفي على iOS) */}
         {!isIOS && !isPaid && !checkingAuth && words.length > FREE_LIMIT && (
@@ -304,6 +397,11 @@ export function LevelWordsClient({
               const isLocked = !isIOS && !isPaid && i >= FREE_LIMIT;
               const loopId = `${level.id}:${w.w}:${i}`;
               const isLooping = loopingId === loopId;
+              // الرقم الثابت حسب المنهج (لا يتغيّر مع الفرز)
+              const wordNum = numberOf.get(w) ?? i + 1;
+              const wordKey = `${level.id}:${w.w}:${wordNum}`;
+              const isBookmarked = bookmark === wordKey;
+              const isLastPos = !isBookmarked && lastPos === wordKey;
               const charSize =
                 w.w.length <= 1
                   ? "text-[28px]"
@@ -314,11 +412,18 @@ export function LevelWordsClient({
               return (
                 <div
                   key={`${w.w}-${i}`}
-                  style={
-                    i < visible.length - 1
+                  id={`word-${wordKey}`}
+                  className="scroll-mt-20 transition-shadow"
+                  style={{
+                    ...(i < visible.length - 1
                       ? { borderBottom: "1px solid #D0D0D0" }
-                      : undefined
-                  }
+                      : {}),
+                    ...(isBookmarked
+                      ? { boxShadow: `inset 3px 0 0 ${level.color}` }
+                      : isLastPos
+                      ? { boxShadow: `inset 3px 0 0 ${level.color}66` }
+                      : {}),
+                  }}
                 >
                   {/* صف الكلمة */}
                   <button
@@ -326,20 +431,42 @@ export function LevelWordsClient({
                     style={{
                       background: isLocked
                         ? "#F9F9F9"
+                        : isBookmarked
+                        ? level.soft
                         : isOpen
                         ? level.soft
                         : "#fff",
                       borderBottom: isOpen ? `3px solid ${level.color}` : undefined,
                     }}
-                    onClick={() => toggleItem(i, `${level.id}:${w.w}`)}
+                    onClick={() => toggleItem(i, `${level.id}:${w.w}`, wordKey)}
                   >
+                    {/* رقم الكلمة الثابت */}
+                    <span
+                      className={cn(
+                        "w-8 shrink-0 text-center text-[11px] font-bold tabular-nums",
+                        isLocked ? "text-gray-300" : "text-muted"
+                      )}
+                      dir="ltr"
+                    >
+                      {wordNum}
+                    </span>
+
                     {isLocked ? (
                       <Lock className="h-4 w-4 shrink-0 text-gray-300" />
                     ) : (
-                      <ChevronDown
-                        className={cn("h-4 w-4 shrink-0 transition-transform", isOpen && "rotate-180")}
-                        style={{ color: isOpen ? level.color : "#B8B8B8" }}
-                      />
+                      // زر التوسعة — أوضح: خلفية دائرية خفيفة بلون المستوى
+                      <span
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-transform"
+                        style={{
+                          background: isOpen ? level.color : level.soft,
+                          boxShadow: isOpen ? "none" : `inset 0 0 0 1px ${level.color}40`,
+                        }}
+                      >
+                        <ChevronDown
+                          className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")}
+                          style={{ color: isOpen ? "#fff" : level.color }}
+                        />
+                      </span>
                     )}
 
                     <div className="min-w-0 flex-1">
@@ -361,6 +488,28 @@ export function LevelWordsClient({
                         {w.m}
                       </div>
                     </div>
+
+                    {/* زر علامة الوصول اليدوية — يظهر للكلمات المفتوحة (غير المقفلة) */}
+                    {!isLocked && (
+                      <button
+                        aria-label={isBookmarked ? "إزالة العلامة" : "ضع علامة هنا"}
+                        title={isBookmarked ? "إزالة العلامة" : "ضع علامة هنا"}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-transform active:scale-90"
+                        style={{
+                          background: isBookmarked ? level.soft : "transparent",
+                          color: isBookmarked ? level.color : "#C4C4C4",
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleBookmark(wordKey);
+                        }}
+                      >
+                        <Bookmark
+                          className="h-[18px] w-[18px]"
+                          fill={isBookmarked ? "currentColor" : "none"}
+                        />
+                      </button>
+                    )}
 
                     {/* زر الكلمة أو قفل */}
                     {isLocked ? (
