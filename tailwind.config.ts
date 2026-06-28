@@ -11,6 +11,8 @@ const config: Config = {
         coral:  { DEFAULT: "#FF4D4F", soft: "#FFF1F0" },
         violet: { DEFAULT: "#7C5CFC", soft: "#F2EEFF" },
         mint:   { DEFAULT: "#11A88E", soft: "#E6F7F3", deep: "#0F8B73" }, // deep = للنص (تباين AA)
+        sky:    { DEFAULT: "#2F8FE0", soft: "#E8F3FC" }, // أزرق — كلمات الكمية
+        amber:  { DEFAULT: "#E08A1E", soft: "#FDF2E0" }, // برتقالي — جذور الكلمات
         ink: "#1A1A1A",
         muted: "#6B7280", // ← رفع التباين من #8C8C8C لـ#6B7280 (يجتاز AA)
         line:  "#EAEAEA", // ← حدود ناعمة على الأبيض النقي
@@ -33,6 +35,8 @@ const config: Config = {
         cardSoftHover: "0 2px 4px rgba(17,24,39,0.05), 0 6px 14px rgba(17,24,39,0.08), 0 14px 30px rgba(17,24,39,0.06)",
         coral:     "0 8px 24px rgba(255,77,79,0.28)",
         violet:    "0 8px 24px rgba(124,92,252,0.28)",
+        sky:       "0 8px 24px rgba(47,143,224,0.28)",
+        amber:     "0 8px 24px rgba(224,138,30,0.28)",
         nav:       "0 -2px 16px rgba(0,0,0,0.06)",
       },
     },
