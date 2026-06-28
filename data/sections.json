@@ -1,60 +1,74 @@
 {
- "sections": [
-   {
-     "id": "hsk",
-     "href": "/hsk-levels?system=2",
-     "emoji": "🎧",
-     "accent": "coral",
-     "tag": "النظام القديم",
-     "badge": "HSK 2.0",
-     "zh": "汉语水平考试",
-     "title": "HSK 1–6",
-     "sub": "النظام القديم HSK 2.0",
-     "count": "+5,000",
-     "unit": "كلمة",
-     "levels": ["1-2", "3", "4", "5", "6"]
-   },
-   {
-     "id": "n1",
-     "href": "/hsk-levels?system=3",
-     "emoji": "🚀",
-     "accent": "mint",
-     "tag": "النظام الجديد",
-     "badge": "HSK 3.0",
-     "zh": "国际中文教育",
-     "title": "HSK 1–9",
-     "sub": "النظام الجديد HSK 3.0",
-     "count": "12,036",
-     "unit": "كلمة",
-     "levels": ["1", "2", "3", "4", "5", "6", "7-9"]
-   },
-   {
-     "id": "gr",
-     "href": "/grammar",
-     "emoji": "语",
-     "accent": "violet",
-     "tag": "النحو",
-     "badge": "语法",
-     "zh": "语法规则",
-     "title": "القواعد",
-     "sub": "قواعد اللغة الصينية بشرح تفصيلي",
-     "count": "180",
-     "unit": "قاعدة",
-     "levels": ["1", "2", "3", "4", "5", "6", "7-9"]
-   },
-   {
-     "id": "lc",
-     "href": "/classifiers",
-     "emoji": "量",
-     "accent": "violet",
-     "tag": "النحو",
-     "badge": "量词",
-     "zh": "量词用法",
-     "title": "كلمات الكمية",
-     "sub": "المصنّفات الصينية الأساسية",
-     "count": "101",
-     "unit": "مصنِّف",
-     "levels": ["1", "2", "3", "4", "5", "6"]
-   }
- ]
+  "sections": [
+    {
+      "id": "hsk",
+      "href": "/hsk-levels?system=2",
+      "emoji": "🎧",
+      "accent": "coral",
+      "tag": "النظام القديم",
+      "badge": "HSK 2.0",
+      "zh": "汉语水平考试",
+      "title": "HSK 1–6",
+      "sub": "النظام القديم HSK 2.0",
+      "count": "+5,000",
+      "unit": "كلمة",
+      "levels": ["1-2", "3", "4", "5", "6"]
+    },
+    {
+      "id": "n1",
+      "href": "/hsk-levels?system=3",
+      "emoji": "🚀",
+      "accent": "mint",
+      "tag": "النظام الجديد",
+      "badge": "HSK 3.0",
+      "zh": "国际中文教育",
+      "title": "HSK 1–9",
+      "sub": "النظام الجديد HSK 3.0",
+      "count": "12,036",
+      "unit": "كلمة",
+      "levels": ["1", "2", "3", "4", "5", "6", "7-9"]
+    },
+    {
+      "id": "gr",
+      "href": "/grammar",
+      "emoji": "语",
+      "accent": "violet",
+      "tag": "النحو",
+      "badge": "语法",
+      "zh": "语法规则",
+      "title": "القواعد",
+      "sub": "قواعد اللغة الصينية بشرح تفصيلي",
+      "count": "180",
+      "unit": "قاعدة",
+      "levels": ["1", "2", "3", "4", "5", "6", "7-9"]
+    },
+    {
+      "id": "lc",
+      "href": "/classifiers",
+      "emoji": "量",
+      "accent": "violet",
+      "tag": "النحو",
+      "badge": "量词",
+      "zh": "量词用法",
+      "title": "كلمات الكمية",
+      "sub": "المصنّفات الصينية الأساسية",
+      "count": "101",
+      "unit": "مصنِّف",
+      "levels": ["1", "2", "3", "4", "5", "6"]
+    },
+    {
+      "id": "rad",
+      "href": "/radicals",
+      "emoji": "部",
+      "accent": "violet",
+      "tag": "الجذور",
+      "badge": "部首",
+      "zh": "汉字部首",
+      "title": "جذور الكلمات",
+      "sub": "خمسة جذور تُبنى عليها آلاف الكلمات",
+      "count": "5",
+      "unit": "جذر",
+      "levels": ["1"]
+    }
+  ]
 }
