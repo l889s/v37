@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./radicals.css";
 
 export const metadata: Metadata = {
-  title: "جذور الحروف الصينية · الدفعة الأولى · HSK",
+  title: "جذور الكلمات الصينية · الدفعة الأولى · HSK",
   description:
     "خمسة جذور أساسية: 人 女 水 火 月 — لكل جذر قاعدة ذهبية وأمثلة مفكّكة واختبار سريع.",
 };
@@ -14,9 +14,9 @@ export default function RadicalsPage() {
         <div className="hero-bgzi">部</div>
         <div className="wrap hero-inner">
           <div className="hero-kicker">
-            <span>汉字部首</span> · جذور الحروف الصينية
+            <span>汉字部首</span> · جذور الكلمات الصينية
           </div>
-          <h1 className="hero-title">جذور الحروف — الدفعة الأولى</h1>
+          <h1 className="hero-title">جذور الكلمات — الدفعة الأولى</h1>
           <p className="hero-sub">
             خمسة جذور تُبنى عليها آلاف الكلمات. لكل جذر: قاعدة ذهبية، أمثلة
             مفكّكة، اختبار سريع، وتمييز بصري للحروف المتشابهة.
@@ -460,7 +460,7 @@ export default function RadicalsPage() {
       <footer className="wrap rad-footer">
         <span className="zh-title">汉字部首</span>
         <p>
-          الدفعة الأولى من قاموس جذور الحروف الصينية ·{" "}
+          الدفعة الأولى من قاموس جذور الكلمات الصينية ·{" "}
           <a href="https://hsk-ar.com">hsk-ar.com</a>
         </p>
       </footer>
