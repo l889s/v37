@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
-import { Search, X, Volume2, ArrowRight, ArrowDownAZ, Hash, ChevronDown, Lock, PencilLine, Repeat2 } from "lucide-react";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { Search, X, Volume2, ArrowRight, ArrowDownAZ, Hash, ChevronDown, Lock, PencilLine, Repeat2, Square } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useSpeech } from "@/lib/useSpeech";
@@ -43,16 +43,25 @@ export function LevelWordsClient({
   const [sort, setSort] = useState<SortMode>("original");
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [writerChars, setWriterChars] = useState<string | null>(null);
+  const [loopingId, setLoopingId] = useState<string | null>(null);
   const [isPaid, setIsPaid] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [isIOS, setIsIOS] = useState(false);
   const { speak, supported } = useSpeech();
   const { markRead } = useReadWords(level.id, words.length);
   const { toast } = useToast();
+  const loopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // اكتشاف منصّة iOS — على iOS كل المحتوى مجاني بالكامل
   useEffect(() => {
     if (detectIOS()) setIsIOS(true);
+  }, []);
+
+  // إيقاف التكرار عند مغادرة الصفحة
+  useEffect(() => {
+    return () => {
+      if (loopTimer.current) clearTimeout(loopTimer.current);
+    };
   }, []);
 
   // فحص حالة الاشتراك
@@ -100,9 +109,42 @@ export function LevelWordsClient({
     speak(text);
   }
 
+  // تشغيل/إيقاف التكرار المستمر: كلمة ← جملة ← (انتظار) ← يعيد
+  function toggleLoop(id: string, word: string, sentence: string) {
+    // لو نفس الكلمة شغّالة → أوقف
+    if (loopingId === id) {
+      stopLoop();
+      return;
+    }
+    if (!supported) {
+      toast("متصفّحك لا يدعم النطق التلقائي", "error");
+      return;
+    }
+    stopLoop();
+    setLoopingId(id);
+
+    const cycle = () => {
+      play(word);
+      loopTimer.current = setTimeout(() => {
+        play(sentence);
+        loopTimer.current = setTimeout(cycle, 4000);
+      }, 1500);
+    };
+    cycle();
+  }
+
+  function stopLoop() {
+    if (loopTimer.current) {
+      clearTimeout(loopTimer.current);
+      loopTimer.current = null;
+    }
+    setLoopingId(null);
+  }
+
   function toggleItem(i: number, wordId: string) {
     // منع فتح الكلمات المقفلة — لا قفل على iOS
     if (!isIOS && !isPaid && i >= FREE_LIMIT) return;
+    stopLoop();
     setOpenIndex((prev) => {
       const opening = prev !== i;
       if (opening) markRead(wordId);
@@ -260,6 +302,8 @@ export function LevelWordsClient({
             {visible.map((w, i) => {
               const isOpen = openIndex === i;
               const isLocked = !isIOS && !isPaid && i >= FREE_LIMIT;
+              const loopId = `${level.id}:${w.w}:${i}`;
+              const isLooping = loopingId === loopId;
               const charSize =
                 w.w.length <= 1
                   ? "text-[28px]"
@@ -385,10 +429,13 @@ export function LevelWordsClient({
                           {w.sa}
                         </div>
                       </div>
-                      <div className="flex flex-wrap justify-end gap-2">
-                        {/* زر كتابة الحرف */}
+
+                      <div className="flex flex-wrap items-center justify-end gap-2">
+                        {/* زر كتابة الحرف — أيقونة دائرية */}
                         <button
-                          className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-[12.5px] font-bold transition-colors"
+                          aria-label="اكتب الحرف"
+                          title="اكتب الحرف"
+                          className="flex h-10 w-10 items-center justify-center rounded-full transition-transform active:scale-90"
                           style={{
                             background: level.soft,
                             color: level.color,
@@ -396,25 +443,32 @@ export function LevelWordsClient({
                           }}
                           onClick={() => setWriterChars(w.w)}
                         >
-                          <PencilLine className="h-3.5 w-3.5" />
-                          اكتب الحرف
+                          <PencilLine className="h-[18px] w-[18px]" />
                         </button>
 
-                        {/* زر تكرار: كلمة ثم جملة */}
+                        {/* زر تكرار — أيقونة دائرية تتحول لإيقاف */}
                         <button
-                          className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-[12.5px] font-bold transition-colors"
-                          style={{
-                            background: "#EEF2FF",
-                            color: "#4338CA",
-                            boxShadow: "inset 0 0 0 1px rgba(67,56,202,.2)",
-                          }}
-                          onClick={() => { play(w.w); setTimeout(() => play(w.s), 1200); }}
+                          aria-label={isLooping ? "إيقاف التكرار" : "تكرار مستمر"}
+                          title={isLooping ? "إيقاف التكرار" : "تكرار مستمر"}
+                          className={cn(
+                            "flex h-10 w-10 items-center justify-center rounded-full transition-all active:scale-90",
+                            isLooping && "animate-pulse"
+                          )}
+                          style={
+                            isLooping
+                              ? { background: "#4338CA", color: "#fff" }
+                              : { background: "#EEF2FF", color: "#4338CA", boxShadow: "inset 0 0 0 1px rgba(67,56,202,.2)" }
+                          }
+                          onClick={() => toggleLoop(loopId, w.w, w.s)}
                         >
-                          <Repeat2 className="h-3.5 w-3.5" />
-                          تكرار
+                          {isLooping ? (
+                            <Square className="h-[16px] w-[16px]" fill="currentColor" />
+                          ) : (
+                            <Repeat2 className="h-[18px] w-[18px]" />
+                          )}
                         </button>
 
-                        {/* استمع للجملة */}
+                        {/* استمع للجملة — يبقى نص */}
                         <button
                           className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-[12.5px] font-bold transition-colors"
                           style={{
