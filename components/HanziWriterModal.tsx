@@ -8,7 +8,7 @@ export function HanziWriterModal({
   color,
   onClose,
 }: {
-  chars: string;        // الكلمة كاملة، مثل "爸爸"
+  chars: string;        // الكلمة كاملة، مثل "杯子"
   color: string;        // لون المستوى
   onClose: () => void;
 }) {
@@ -46,11 +46,10 @@ export function HanziWriterModal({
           drawingColor: color,
           strokeAnimationSpeed: 1,
           delayBetweenStrokes: 220,
-          // شبكة 米字格
           drawingWidth: 22,
         });
 
-        // رسم خطوط الشبكة المتقطعة
+        // رسم خطوط الشبكة المتقطعة 米字格
         const ns = "http://www.w3.org/2000/svg";
         const svg = target.querySelector("svg");
         if (svg) {
@@ -75,11 +74,25 @@ export function HanziWriterModal({
     return () => { cancelled = true; };
   }, [chars]);
 
+  // شاهد: يرسم كل حرف بالتسلسل — الحرف التالي يبدأ فقط بعد انتهاء السابق
   function handleAnimate() {
     setMode("animate");
-    writersRef.current.forEach((w, idx) => {
-      setTimeout(() => w.animateCharacter(), idx * 900);
-    });
+    const writers = writersRef.current;
+    if (writers.length === 0) return;
+
+    // إخفاء الكل أولاً
+    writers.forEach((w) => w.hideCharacter());
+
+    const animateAt = (idx: number) => {
+      if (idx >= writers.length) return;
+      writers[idx].animateCharacter({
+        onComplete: () => {
+          // انتظار بسيط بين حرف وحرف ثم نبدأ التالي
+          setTimeout(() => animateAt(idx + 1), 400);
+        },
+      });
+    };
+    animateAt(0);
   }
 
   function handleQuiz() {
