@@ -561,7 +561,7 @@ export function LevelWordsClient({
                         <button
                           aria-label={isBookmarked ? "إزالة العلامة" : "ضع علامة هنا"}
                           title={isBookmarked ? "إزالة العلامة" : "ضع علامة هنا"}
-                          className="flex h-10 items-center gap-1.5 rounded-full px-3.5 transition-transform active:scale-90"
+                          className="flex h-10 w-10 items-center justify-center rounded-full transition-transform active:scale-90"
                           style={
                             isBookmarked
                               ? { background: level.color, color: "#fff" }
@@ -573,12 +573,9 @@ export function LevelWordsClient({
                           }}
                         >
                           <Bookmark
-                            className="h-[17px] w-[17px]"
+                            className="h-[18px] w-[18px]"
                             fill={isBookmarked ? "currentColor" : "none"}
                           />
-                          <span className="text-[12px] font-bold">
-                            {isBookmarked ? "معلَّمة" : "علّم"}
-                          </span>
                         </button>
 
                         {/* زر كتابة الحرف — أيقونة دائرية */}
