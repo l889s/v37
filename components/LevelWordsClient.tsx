@@ -427,7 +427,7 @@ export function LevelWordsClient({
                 >
                   {/* صف الكلمة */}
                   <button
-                    className="flex w-full items-center gap-3 px-4 py-3.5 text-right transition-colors"
+                    className="flex w-full items-stretch gap-2.5 px-3 py-3 text-right transition-colors"
                     style={{
                       background: isLocked
                         ? "#F9F9F9"
@@ -440,39 +440,42 @@ export function LevelWordsClient({
                     }}
                     onClick={() => toggleItem(i, `${level.id}:${w.w}`, wordKey)}
                   >
-                    {/* رقم الكلمة الثابت */}
-                    <span
-                      className={cn(
-                        "w-8 shrink-0 text-center text-[11px] font-bold tabular-nums",
-                        isLocked ? "text-gray-300" : "text-muted"
-                      )}
-                      dir="ltr"
-                    >
-                      {wordNum}
-                    </span>
-
-                    {isLocked ? (
-                      <Lock className="h-4 w-4 shrink-0 text-gray-300" />
-                    ) : (
-                      // زر التوسعة — أوضح: خلفية دائرية خفيفة بلون المستوى
+                    {/* عمود الرقم + زر التوسعة (مدموج، بداية الصف) */}
+                    <div className="flex w-9 shrink-0 flex-col items-center justify-center gap-1">
                       <span
-                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-transform"
-                        style={{
-                          background: isOpen ? level.color : level.soft,
-                          boxShadow: isOpen ? "none" : `inset 0 0 0 1px ${level.color}40`,
-                        }}
+                        className={cn(
+                          "text-[10px] font-bold leading-none tabular-nums",
+                          isLocked ? "text-gray-300" : "text-muted"
+                        )}
+                        dir="ltr"
                       >
-                        <ChevronDown
-                          className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")}
-                          style={{ color: isOpen ? "#fff" : level.color }}
-                        />
+                        {wordNum}
                       </span>
-                    )}
+                      {isLocked ? (
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
+                          <Lock className="h-3.5 w-3.5 text-gray-300" />
+                        </span>
+                      ) : (
+                        <span
+                          className="flex h-7 w-7 items-center justify-center rounded-full transition-transform"
+                          style={{
+                            background: isOpen ? level.color : level.soft,
+                            boxShadow: isOpen ? "none" : `inset 0 0 0 1px ${level.color}40`,
+                          }}
+                        >
+                          <ChevronDown
+                            className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")}
+                            style={{ color: isOpen ? "#fff" : level.color }}
+                          />
+                        </span>
+                      )}
+                    </div>
 
-                    <div className="min-w-0 flex-1">
+                    {/* النص: بينيين + المعنى (مساحة واسعة) */}
+                    <div className="flex min-w-0 flex-1 flex-col justify-center">
                       <div
                         className={cn(
-                          "text-[12px] font-semibold italic",
+                          "text-[12px] font-semibold italic leading-tight",
                           isLocked ? "text-gray-300 blur-[3px]" : "text-muted"
                         )}
                         style={{ direction: "ltr", textAlign: "right" }}
@@ -481,7 +484,7 @@ export function LevelWordsClient({
                       </div>
                       <div
                         className={cn(
-                          "text-[15px] font-extrabold leading-tight",
+                          "mt-0.5 text-[15px] font-extrabold leading-snug",
                           isLocked ? "text-gray-300 blur-[3px]" : "text-ink"
                         )}
                       >
@@ -489,44 +492,21 @@ export function LevelWordsClient({
                       </div>
                     </div>
 
-                    {/* زر علامة الوصول اليدوية — يظهر للكلمات المفتوحة (غير المقفلة) */}
-                    {!isLocked && (
-                      <button
-                        aria-label={isBookmarked ? "إزالة العلامة" : "ضع علامة هنا"}
-                        title={isBookmarked ? "إزالة العلامة" : "ضع علامة هنا"}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-transform active:scale-90"
-                        style={{
-                          background: isBookmarked ? level.soft : "transparent",
-                          color: isBookmarked ? level.color : "#C4C4C4",
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleBookmark(wordKey);
-                        }}
-                      >
-                        <Bookmark
-                          className="h-[18px] w-[18px]"
-                          fill={isBookmarked ? "currentColor" : "none"}
-                        />
-                      </button>
-                    )}
-
-                    {/* زر الكلمة أو قفل */}
+                    {/* زر صوت الكلمة — أيقونة مدمجة */}
                     {isLocked ? (
                       <Link
                         href="/sign-up"
                         onClick={(e) => e.stopPropagation()}
-                        className="shrink-0 rounded-lg px-3 py-1.5 text-[11.5px] font-bold transition-colors"
-                        style={{
-                          background: "#F3F4F6",
-                          color: "#9CA3AF",
-                        }}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center self-center rounded-full"
+                        style={{ background: "#F3F4F6", color: "#9CA3AF" }}
                       >
-                        سجّل 🔒
+                        <Lock className="h-4 w-4" />
                       </Link>
                     ) : (
                       <button
-                        className="shrink-0 rounded-lg px-3 py-1.5 text-[11.5px] font-bold transition-colors"
+                        aria-label="استمع للكلمة"
+                        title="استمع للكلمة"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center self-center rounded-full transition-transform active:scale-90"
                         style={{
                           background: "#FFF1F0",
                           color: "#C05C00",
@@ -534,17 +514,14 @@ export function LevelWordsClient({
                         }}
                         onClick={(e) => { e.stopPropagation(); play(w.w); }}
                       >
-                        <span className="flex items-center gap-1">
-                          <Volume2 className="h-3 w-3" />
-                          الكلمة
-                        </span>
+                        <Volume2 className="h-4 w-4" />
                       </button>
                     )}
 
                     {/* أيقونة الحرف */}
                     <div
                       className={cn(
-                        "flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-xl font-cn font-bold leading-none",
+                        "flex h-[52px] w-[52px] shrink-0 items-center justify-center self-center rounded-xl font-cn font-bold leading-none",
                         charSize,
                         isLocked && "blur-[4px]"
                       )}
@@ -580,6 +557,30 @@ export function LevelWordsClient({
                       </div>
 
                       <div className="flex flex-wrap items-center justify-end gap-2">
+                        {/* زر علامة الوصول — يثبّت/يلغي نقطة المراجعة */}
+                        <button
+                          aria-label={isBookmarked ? "إزالة العلامة" : "ضع علامة هنا"}
+                          title={isBookmarked ? "إزالة العلامة" : "ضع علامة هنا"}
+                          className="flex h-10 items-center gap-1.5 rounded-full px-3.5 transition-transform active:scale-90"
+                          style={
+                            isBookmarked
+                              ? { background: level.color, color: "#fff" }
+                              : { background: level.soft, color: level.color, boxShadow: `inset 0 0 0 1px ${level.color}33` }
+                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleBookmark(wordKey);
+                          }}
+                        >
+                          <Bookmark
+                            className="h-[17px] w-[17px]"
+                            fill={isBookmarked ? "currentColor" : "none"}
+                          />
+                          <span className="text-[12px] font-bold">
+                            {isBookmarked ? "معلَّمة" : "علّم"}
+                          </span>
+                        </button>
+
                         {/* زر كتابة الحرف — أيقونة دائرية */}
                         <button
                           aria-label="اكتب الحرف"
