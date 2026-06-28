@@ -72,10 +72,17 @@ export function HskLevelsClient() {
         />
       </div>
 
-      {/* وصف النظام */}
+      {/* وصف النظام — موحّد مع الصفحة الرئيسية (النظام القديم / النظام الجديد) */}
       <div className="mb-6 text-[12px] leading-relaxed text-muted">
         <span className="font-bold text-ink">{systems[activeSystem].name}</span>
         {" — "}
+        <span
+          className="font-bold"
+          style={{ color: activeSystem === "2" ? "#FF4D4F" : "#11A88E" }}
+        >
+          {activeSystem === "2" ? "النظام القديم" : "النظام الجديد"}
+        </span>
+        {" · "}
         <span>{systems[activeSystem].subtitle}</span>
         {" · "}
         <span>{activeLevels.length} مستويات</span>
