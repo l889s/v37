@@ -4,6 +4,7 @@
     { "href": "/hsk-levels",   "label": "المستويات",     "icon": "Layers" },
     { "href": "/classifiers",  "label": "كلمات الكمية",  "icon": "BookOpen" },
     { "href": "/grammar",      "label": "القواعد",       "icon": "Sparkles" },
+    { "href": "/radicals",     "label": "الجذور",        "icon": "Blocks" },
     { "href": "/achievements", "label": "إنجازاتي",      "icon": "Trophy" }
   ]
 }
