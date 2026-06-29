@@ -35,20 +35,20 @@ export function SectionCard({ section }: { section: Section }) {
       }}
       aria-label={title}
     >
-      {/* BALANCED: أيقونة 52px، ارتفاع أدنى 64px */}
-      <div className="flex min-h-[64px] items-center gap-3.5 px-1 py-1">
+      {/* COMPACT: أيقونة 46px، ارتفاع أدنى 56px، نص مضغوط */}
+      <div className="flex min-h-[56px] items-center gap-3 px-1 py-0.5">
         <div
           className={cn(
-            "flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl text-white",
+            "flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-xl text-white",
             accentSolid[accent], accentGlow[accent],
-            cn_char ? "font-cn text-[28px] font-black" : "text-[28px]"
+            cn_char ? "font-cn text-2xl font-black" : "text-[26px]"
           )}
         >
           <span>{emoji}</span>
         </div>
         <div className="flex min-w-0 flex-1 flex-col justify-center">
-          <h3 className="text-lg font-extrabold leading-tight text-ink">{title}</h3>
-          <p className="mt-1 line-clamp-1 text-[13px] leading-relaxed text-muted">{sub}</p>
+          <h3 className="text-[17px] font-extrabold leading-tight text-ink">{title}</h3>
+          <p className="mt-0.5 line-clamp-1 text-[12.5px] leading-snug text-muted">{sub}</p>
         </div>
         <ChevronLeft className="h-5 w-5 shrink-0 text-[#CBCBCB]" />
       </div>
