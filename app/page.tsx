@@ -11,7 +11,7 @@ export default function HomePage() {
       <OnboardingGate />
 
       <Hero
-        title={"ابدأ رحلتك في\nاللغة الصينية"}
+        title="ابدأ رحلتك في اللغة الصينية"
         subtitle="تعلَّم مفردات HSK مع النطق الصوتي — اختر القسم المناسب لمستواك"
       />
 
