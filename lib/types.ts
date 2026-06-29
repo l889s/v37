@@ -1,7 +1,7 @@
-export type Accent = "coral" | "violet" | "mint";
+export type Accent = "coral" | "violet" | "mint" | "sky" | "amber";
 
 export type Section = {
-  id: "hsk" | "lc" | "n1";
+  id: "hsk" | "lc" | "n1" | "gr" | "rad";
   href: string;
   emoji: string;
   accent: Accent;
@@ -80,7 +80,7 @@ export type ClassifierLevel = {
 export type NavItem = {
   href: string;
   label: string;
-  icon: "Home" | "Layers" | "BookOpen" | "Sparkles" | "TrendingUp" | "Trophy";
+  icon: "Home" | "Layers" | "BookOpen" | "Sparkles" | "TrendingUp" | "Trophy" | "Blocks";
 };
 
 export type Word = {
