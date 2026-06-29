@@ -46,7 +46,8 @@ export function SectionCard({ section }: { section: Section }) {
       }}
       aria-label={title}
     >
-      <div className="flex items-center gap-4">
+      {/* ارتفاع موحّد لكل الكروت */}
+      <div className="flex min-h-[88px] items-center gap-4">
         {/* الأيقونة الملوّنة الممتلئة */}
         <div
           className={cn(
@@ -59,10 +60,10 @@ export function SectionCard({ section }: { section: Section }) {
           <span>{emoji}</span>
         </div>
 
-        {/* النص */}
-        <div className="min-w-0 flex-1">
+        {/* النص — متمركز عمودياً */}
+        <div className="flex min-w-0 flex-1 flex-col justify-center">
           <h3 className="text-xl font-extrabold leading-tight text-ink">{title}</h3>
-          <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">{sub}</p>
+          <p className="mt-1.5 line-clamp-2 text-[13.5px] leading-relaxed text-muted">{sub}</p>
         </div>
 
         {/* السهم */}
