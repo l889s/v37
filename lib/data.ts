@@ -20,7 +20,7 @@ export function getHskSystem(id: "2" | "3"): HskSystem | null {
 export function getHskLevel(id: string): { level: HskLevel; systemId: "2" | "3" } | null {
   const systems = hskData.systems as unknown as Record<string, HskSystem>;
   for (const sysId of ["2", "3"] as const) {
-    const lv = systems[sysId].levels.find(l => l.id === id);
+    const lv = systems[sysId].levels.find((l: HskLevel) => l.id === id);
     if (lv) return { level: lv, systemId: sysId };
   }
   return null;
@@ -36,17 +36,14 @@ export function getWordsForLevel(levelId: string): Word[] {
 
 /* ============ دوال مساعدة لتقدّم المستوى ============ */
 
-/** يولّد id مستقر لكل كلمة بناءً على المستوى + النص الصيني */
 export function wordIdFor(levelId: string, w: { w: string }): string {
   return `${levelId}:${w.w}`;
 }
 
-/** يُرجع كل ids الكلمات في مستوى معيّن — للاستخدام مع SRS */
 export function getWordIdsForLevel(levelId: string): string[] {
   return getWordsForLevel(levelId).map((w) => wordIdFor(levelId, w));
 }
 
-/** يُرجع ids كل الكلمات في كل المستويات — لتسجيلها في SRS */
 export function getAllWordIds(): string[] {
   const ids: string[] = [];
   const systems = hskData.systems as unknown as Record<string, HskSystem>;
