@@ -6,7 +6,7 @@ import { getSections } from "@/lib/data";
 export default function HomePage() {
   const sections = getSections();
   return (
-    <main className="min-h-screen pb-4">
+    <main className="pb-6">
       {/* يظهر فقط للمستخدم الجديد (مرة واحدة) */}
       <OnboardingGate />
 
