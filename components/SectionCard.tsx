@@ -11,12 +11,16 @@ const accentSolid: Record<Accent, string> = {
   coral: "bg-coral",
   violet: "bg-violet",
   mint: "bg-mint",
+  sky: "bg-sky",
+  amber: "bg-amber",
 };
 
 const accentGlow: Record<Accent, string> = {
   coral: "shadow-[0_6px_16px_rgba(255,77,79,0.32)]",
   violet: "shadow-[0_6px_16px_rgba(124,92,252,0.32)]",
   mint: "shadow-[0_6px_16px_rgba(17,168,142,0.32)]",
+  sky: "shadow-[0_6px_16px_rgba(47,143,224,0.32)]",
+  amber: "shadow-[0_6px_16px_rgba(224,138,30,0.32)]",
 };
 
 // هل الإيموجي حرف صيني (يحتاج خط Noto SC)؟
