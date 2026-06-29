@@ -1,4 +1,4 @@
-{
+
   "sections": [
     {
       "id": "hsk",
@@ -46,7 +46,7 @@
       "id": "lc",
       "href": "/classifiers",
       "emoji": "量",
-      "accent": "violet",
+      "accent": "sky",
       "tag": "النحو",
       "badge": "量词",
       "zh": "量词用法",
@@ -60,12 +60,12 @@
       "id": "rad",
       "href": "/radicals",
       "emoji": "部",
-      "accent": "violet",
+      "accent": "amber",
       "tag": "الجذور",
       "badge": "部首",
       "zh": "汉字部首",
       "title": "جذور الكلمات",
-      "sub": "خمسة جذور تُبنى عليها آلاف الكلمات",
+      "sub": "افهم منطق الكلمة من جذرها — مفتاحٌ يفكّ آلاف الكلمات بحدسٍ لا بالحفظ",
       "count": "5",
       "unit": "جذر",
       "levels": ["1"]
