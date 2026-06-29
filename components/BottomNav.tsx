@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Layers, BookOpen, Sparkles, TrendingUp, Trophy, LucideIcon } from "lucide-react";
+import { Home, Layers, BookOpen, Sparkles, TrendingUp, Trophy, Blocks, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSrs } from "@/lib/spacedRepetition";
 import { ALL_CLASSIFIERS } from "@/lib/classifiersPro";
 import type { NavItem } from "@/lib/types";
 
 const ICONS: Record<NavItem["icon"], LucideIcon> = {
-  Home, Layers, BookOpen, Sparkles, TrendingUp, Trophy,
+  Home, Layers, BookOpen, Sparkles, TrendingUp, Trophy, Blocks,
 };
 
 export function BottomNav({ items }: { items: NavItem[] }) {
@@ -18,12 +18,15 @@ export function BottomNav({ items }: { items: NavItem[] }) {
   const classifierIds = ALL_CLASSIFIERS.map((c) => c.id);
   const { dueCount } = useSrs(classifierIds);
 
+  // عدد الأعمدة يتبع عدد العناصر (يدعم 5 أو 6)
+  const colsClass = items.length >= 6 ? "grid-cols-6" : "grid-cols-5";
+
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-2xl border-t border-[#F0F0F0] bg-white/95 backdrop-blur shadow-nav"
       aria-label="التنقل الرئيسي"
     >
-      <ul className="grid grid-cols-5">
+      <ul className={cn("grid", colsClass)}>
         {items.map((it) => {
           const Icon = ICONS[it.icon];
           const isActive =
